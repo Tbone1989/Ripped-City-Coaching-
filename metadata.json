@@ -1,0 +1,8 @@
+{
+  "name": "Ripped City Elite Coaching",
+  "description": "A data-driven, biological accountability framework for elite physique athletes and competitive bodybuilders, powered by advanced AI.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
