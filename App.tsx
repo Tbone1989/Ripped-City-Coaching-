@@ -178,7 +178,7 @@ const App: React.FC = () => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden font-inter">
       {role !== UserRole.PROSPECT && (
         <Sidebar 
           activeTab={activeTab} 
@@ -268,9 +268,20 @@ const App: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* COACH MASTER SETTINGS QUICK ACCESS */}
+              {role === UserRole.COACH && (
+                <button 
+                  onClick={() => setActiveTab('cms')}
+                  className={`p-2 transition-all hover:scale-110 ${activeTab === 'cms' ? 'text-red-500' : 'text-gray-400 hover:text-white'}`}
+                  title="Landing Page Settings"
+                >
+                  <i className={`fas fa-cog ${activeTab !== 'cms' && 'animate-[spin_10s_linear_infinite]'}`}></i>
+                </button>
+              )}
               
               <div 
-                className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-red-600 cursor-pointer"
+                className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-red-600 cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => {
                   setRole(UserRole.PROSPECT);
                   setIsOnboarding(false);
