@@ -15,9 +15,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
   const [showSecretField, setShowSecretField] = useState(false);
   const [secretKey, setSecretKey] = useState('');
 
-  // The "Coach" login is now triggered by a hidden interaction: 
-  // Clicking the copyright symbol in the footer 5 times or entering a specific 
-  // non-obvious code in the secret field.
   const handlePortalAccess = (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail && !secretKey) return;
@@ -25,14 +22,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
     setIsLoggingIn(true);
     
     setTimeout(() => {
-      // SECRET AUTHORIZATION LOGIC
-      // Instead of an email, we use a hidden 'secretKey' check.
-      // This key is known only to the Architect.
-      const ARCHITECT_PASSKEY = "RC-7792-OMEGA"; 
+      // MASTER ACCESS KEY: rc-alpha-99
+      const ARCHITECT_PASSKEY = "rc-alpha-99"; 
       
-      if (secretKey === ARCHITECT_PASSKEY) {
+      if (secretKey.toLowerCase() === ARCHITECT_PASSKEY) {
         onLogin(UserRole.COACH);
       } else {
+        // Standard user logic would normally verify against a database
         onLogin(UserRole.CLIENT);
       }
       setIsLoggingIn(false);
@@ -43,9 +39,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
   const handleSecretTrigger = () => {
     const newCount = clickCount + 1;
     setClickCount(newCount);
+    // Secretly click the copyright 5 times to reveal the Coach key field
     if (newCount === 5) {
       setShowSecretField(true);
       document.getElementById('login')?.scrollIntoView({ behavior: 'smooth' });
+      setClickCount(0);
     }
   };
 
@@ -191,6 +189,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
                   <input 
                     type="password" 
                     required
+                    autoFocus
                     className="w-full bg-[#111827] border border-red-900/50 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200"
                     placeholder="ENTER KEYCODE"
                     value={secretKey}
