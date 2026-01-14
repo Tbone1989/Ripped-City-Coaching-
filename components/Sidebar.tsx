@@ -23,7 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role, setRol
     { id: 'crm', label: 'Prospect Hub', icon: 'fa-user-plus', roles: [UserRole.COACH], minTier: 'BEGINNER' },
     { id: 'marketing', label: 'Growth Engine', icon: 'fa-bullhorn', roles: [UserRole.COACH], minTier: 'BEGINNER' },
     { id: 'intelligence', label: 'Business Intel', icon: 'fa-chart-pie', roles: [UserRole.COACH], minTier: 'BEGINNER' },
-    { id: 'cms', label: 'Web Editor', icon: 'fa-globe', roles: [UserRole.COACH], minTier: 'BEGINNER' },
+    { id: 'cms', label: 'Landing Page Settings', icon: 'fa-globe', roles: [UserRole.COACH], minTier: 'BEGINNER' },
     { id: 'terminal', label: 'Payment Terminal', icon: 'fa-wallet', roles: [UserRole.COACH], minTier: 'BEGINNER' },
     { id: 'auditor', label: 'Integrity Audit', icon: 'fa-shield-halved', roles: [UserRole.COACH], minTier: 'BEGINNER' },
 

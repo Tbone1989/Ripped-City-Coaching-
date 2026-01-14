@@ -9,27 +9,44 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) => {
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
+  const [showSecretField, setShowSecretField] = useState(false);
+  const [secretKey, setSecretKey] = useState('');
 
+  // The "Coach" login is now triggered by a hidden interaction: 
+  // Clicking the copyright symbol in the footer 5 times or entering a specific 
+  // non-obvious code in the secret field.
   const handlePortalAccess = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginEmail) return;
+    if (!loginEmail && !secretKey) return;
 
     setIsLoggingIn(true);
     
-    // Simulate authentication delay
     setTimeout(() => {
-      // COACH ACCESS GATED BY SPECIFIC EMAIL
-      if (loginEmail.toLowerCase() === 'coach@rippedcity.com') {
+      // SECRET AUTHORIZATION LOGIC
+      // Instead of an email, we use a hidden 'secretKey' check.
+      // This key is known only to the Architect.
+      const ARCHITECT_PASSKEY = "RC-7792-OMEGA"; 
+      
+      if (secretKey === ARCHITECT_PASSKEY) {
         onLogin(UserRole.COACH);
       } else {
         onLogin(UserRole.CLIENT);
       }
       setIsLoggingIn(false);
     }, 1500);
+  };
+
+  const [clickCount, setClickCount] = useState(0);
+  const handleSecretTrigger = () => {
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+    if (newCount === 5) {
+      setShowSecretField(true);
+      document.getElementById('login')?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -54,7 +71,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
             <i className="fas fa-fire-flame-curved animate-pulse"></i> V3.27 ELITE CORE ACTIVE
           </div>
           
-          <h1 className="text-7xl md:text-8xl font-black italic uppercase leading-[0.9] tracking-tighter mb-8 whitespace-pre-line">
+          <h1 className="text-6xl md:text-8xl font-black italic uppercase leading-[0.9] tracking-tighter mb-8 whitespace-pre-line">
             {content.heroTitle}
           </h1>
           
@@ -164,32 +181,51 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
             onSubmit={handlePortalAccess}
             className="glass bg-gray-900/40 p-10 rounded-[2.5rem] border border-gray-800 shadow-2xl"
           >
-            <h2 className="text-3xl font-black italic uppercase tracking-tighter text-center mb-10">CLIENT LOGIN</h2>
+            <h2 className="text-3xl font-black italic uppercase tracking-tighter text-center mb-10">
+              {showSecretField ? 'ARCHITECT AUTH' : 'CLIENT LOGIN'}
+            </h2>
             <div className="space-y-6">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase text-gray-500 ml-4">Email</label>
-                <input 
-                  type="email" 
-                  required
-                  className="w-full bg-[#111827] border border-gray-800 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200"
-                  placeholder="name@email.com"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase text-gray-500 ml-4">Password</label>
-                <div className="relative">
+              {showSecretField ? (
+                <div className="space-y-1.5 animate-in slide-in-from-top-2">
+                  <label className="text-[10px] font-black uppercase text-red-500 ml-4 tracking-widest">Master Authorization Key</label>
                   <input 
                     type="password" 
                     required
-                    className="w-full bg-[#111827] border border-gray-800 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200 pr-12"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-[#111827] border border-red-900/50 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200"
+                    placeholder="ENTER KEYCODE"
+                    value={secretKey}
+                    onChange={(e) => setSecretKey(e.target.value)}
                   />
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-gray-500 ml-4">Email</label>
+                    <input 
+                      type="email" 
+                      required
+                      className="w-full bg-[#111827] border border-gray-800 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200"
+                      placeholder="name@email.com"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-gray-500 ml-4">Password</label>
+                    <div className="relative">
+                      <input 
+                        type="password" 
+                        required
+                        className="w-full bg-[#111827] border border-gray-800 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200 pr-12"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+              
               <button 
                 type="submit"
                 disabled={isLoggingIn}
@@ -204,6 +240,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
                   "Access Portal"
                 )}
               </button>
+              
+              {showSecretField && (
+                <button 
+                  type="button"
+                  onClick={() => setShowSecretField(false)}
+                  className="w-full text-[10px] font-black text-gray-600 uppercase hover:text-gray-400 transition-colors"
+                >
+                  Return to Standard Login
+                </button>
+              )}
+              
               <p className="text-[9px] text-center text-gray-600 uppercase font-black tracking-widest mt-6 italic">
                 * END-TO-END BIOLOGICAL ENCRYPTION ACTIVE
               </p>
@@ -221,7 +268,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
           <a href="#" className="hover:text-red-600 transition-colors"><i className="fab fa-tiktok"></i></a>
           <a href="#" className="hover:text-red-600 transition-colors"><i className="fab fa-instagram"></i></a>
         </div>
-        <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">
+        <p 
+          className="text-[10px] font-bold text-gray-600 uppercase tracking-widest cursor-default select-none"
+          onClick={handleSecretTrigger}
+        >
           © 2026 Ripped City Inc. All Rights Reserved.
         </p>
       </footer>
