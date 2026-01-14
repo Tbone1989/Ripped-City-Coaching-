@@ -236,3 +236,23 @@ export interface CycleData {
   phase: 'MENSTRUAL' | 'FOLLICULAR' | 'OVULATORY' | 'LUTEAL';
   symptoms: string[];
 }
+
+export interface LandingPageContent {
+  heroTitle: string;
+  heroSubtitle: string;
+  heroImage: string;
+  beforeImage: string;
+  afterImage: string;
+  methodology: {
+    step: string;
+    title: string;
+    text: string;
+    icon: string;
+  }[];
+  testimonials: {
+    name: string;
+    role: string;
+    text: string;
+    avatar: string;
+  }[];
+}

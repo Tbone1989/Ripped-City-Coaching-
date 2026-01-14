@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { UserRole, Notification, ExperienceTier } from './types';
+import { UserRole, Notification, ExperienceTier, LandingPageContent } from './types';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import IntegrityAuditor from './components/AIAuditor';
@@ -29,16 +29,36 @@ import HabitEvolution from './components/HabitEvolution';
 import ProductScanner from './components/ProductScanner';
 import DiningGuide from './components/DiningGuide';
 import BodyScannerHub from './components/BodyScannerHub';
+import CoachCMS from './components/CoachCMS';
+import CoachPaymentTerminal from './components/CoachPaymentTerminal';
 
 const App: React.FC = () => {
   const [role, setRole] = useState<UserRole>(UserRole.PROSPECT);
   const [tier, setTier] = useState<ExperienceTier>('BEGINNER'); 
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile first: hidden
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [activeToast, setActiveToast] = useState<Notification | null>(null);
+
+  const [landingContent, setLandingContent] = useState<LandingPageContent>({
+    heroTitle: "FORGE YOUR\nLEGACY",
+    heroSubtitle: "Elite performance coaching built for competitive athletes. Proven methodologies. Guaranteed evolution.",
+    heroImage: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070",
+    beforeImage: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070",
+    afterImage: "https://images.unsplash.com/photo-1583454110551-21f2fa2adfcd?q=80&w=2070",
+    methodology: [
+      { step: '1', title: 'ANALYZE', text: 'Deep dive intake: bloodwork, lifestyle, and metabolic baseline assessment.', icon: 'fa-clipboard-list' },
+      { step: '2', title: 'BLUEPRINT', text: 'Custom roadmap: Precision nutrition, periodized training, and supplement protocols.', icon: 'fa-hourglass-half' },
+      { step: '3', title: 'EVOLVE', text: 'Execute and adjust: Bi-weekly data-driven audits ensure constant progression.', icon: 'fa-trophy' }
+    ],
+    testimonials: [
+      { name: "John D.", role: "Elite Athlete", text: "Working with the Master Architect changed my perspective on hypertrophy. Precision is the difference.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John" },
+      { name: "Sarah K.", role: "Pro Wellness", text: "The biological sync modules ensured I hit the stage at my dryest while retaining strength.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" },
+      { name: "Mike R.", role: "Classic Physique", text: "Ripped City isn't a program; it's a high-fidelity biological framework.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike" }
+    ]
+  });
 
   const addNotification = (title: string, message: string, type: any) => {
     const newNotif: Notification = {
@@ -57,6 +77,7 @@ const App: React.FC = () => {
     setRole(selectedRole);
     setIsOnboarding(false);
     setActiveTab('dashboard');
+    setIsSidebarOpen(window.innerWidth > 1024);
     addNotification(
       "Link Established", 
       `Welcome back, ${selectedRole === UserRole.COACH ? 'Coach' : 'Athlete'}. Protocols active.`, 
@@ -93,7 +114,7 @@ const App: React.FC = () => {
           />
         );
       }
-      return <LandingPage onJoin={() => setIsOnboarding(true)} onLogin={handleLogin} />;
+      return <LandingPage onJoin={() => setIsOnboarding(true)} onLogin={handleLogin} content={landingContent} />;
     }
 
     switch (activeTab) {
@@ -143,6 +164,10 @@ const App: React.FC = () => {
         return <RemoteConsultation />;
       case 'billing':
         return <InvoicesView />;
+      case 'cms':
+        return <CoachCMS content={landingContent} onUpdate={setLandingContent} />;
+      case 'terminal':
+        return <CoachPaymentTerminal />;
       case 'schedule':
         return <ScheduleView onReminderAction={(msg) => addNotification("Task Complete", msg, "SUCCESS")} />;
       default:
@@ -168,27 +193,27 @@ const App: React.FC = () => {
 
       <main className="flex-1 flex flex-col overflow-hidden relative border-l border-gray-900">
         {role !== UserRole.PROSPECT && (
-          <header className="h-16 glass border-b border-gray-800 flex items-center justify-between px-6 z-10">
+          <header className="h-16 glass border-b border-gray-800 flex items-center justify-between px-4 md:px-6 z-10 shrink-0">
             <div className="flex items-center gap-4">
               <button 
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="lg:hidden p-2 text-gray-400 hover:text-white"
+                className="p-2 text-gray-400 hover:text-white"
               >
                 <i className="fas fa-bars"></i>
               </button>
-              <h1 className="text-xl font-black italic tracking-tighter uppercase">
+              <h1 className="text-base md:text-xl font-black italic tracking-tighter uppercase whitespace-nowrap">
                 RIPPED CITY <span className="text-red-600">v3.27</span>
               </h1>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               {role === UserRole.CLIENT && (
-                 <div className="hidden md:flex flex-col items-end mr-4">
-                    <span className="text-[8px] font-black uppercase text-gray-500 tracking-widest">Athlete Level</span>
+                 <div className="hidden md:flex flex-col items-end mr-2">
+                    <span className="text-[8px] font-black uppercase text-gray-500 tracking-widest">Tier</span>
                     <select 
                       value={tier} 
                       onChange={(e) => setTier(e.target.value as ExperienceTier)}
-                      className="bg-transparent text-[10px] font-black text-red-500 uppercase border-none focus:ring-0 cursor-pointer"
+                      className="bg-transparent text-[10px] font-black text-red-500 uppercase border-none focus:ring-0 cursor-pointer p-0"
                     >
                       <option value="BEGINNER">BEGINNER</option>
                       <option value="INTERMEDIATE">INTERMEDIATE</option>
@@ -206,13 +231,13 @@ const App: React.FC = () => {
                 >
                   <i className="fas fa-bell"></i>
                   {unreadCount > 0 && (
-                    <span className="absolute top-0 right-0 w-4 h-4 bg-red-600 text-[8px] font-black flex items-center justify-center rounded-full text-white border-2 border-gray-950">
+                    <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-600 text-[8px] font-black flex items-center justify-center rounded-full text-white border-2 border-gray-950">
                       {unreadCount}
                     </span>
                   )}
                 </button>
                 {showNotificationCenter && (
-                  <div className="absolute right-0 mt-4 w-80 glass border border-gray-800 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                  <div className="fixed md:absolute right-4 top-16 md:mt-4 w-[calc(100vw-32px)] md:w-80 glass border border-gray-800 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
                     <div className="p-4 border-b border-gray-800 bg-gray-900/50 flex justify-between items-center">
                       <span className="text-xs font-black uppercase tracking-widest italic">Notifications</span>
                       <button 
@@ -243,18 +268,15 @@ const App: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-2 px-3 py-1 bg-red-600/10 border border-red-600/20 rounded-full">
-                <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
-                <span className="text-xs font-bold text-red-500 uppercase tracking-widest">Live: Elite Core</span>
-              </div>
+              
               <div 
-                className="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-red-600 cursor-pointer"
+                className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-red-600 cursor-pointer"
                 onClick={() => {
                   setRole(UserRole.PROSPECT);
                   setIsOnboarding(false);
                 }}
               >
-                <i className="fas fa-right-from-bracket"></i>
+                <i className="fas fa-right-from-bracket text-sm"></i>
               </div>
             </div>
           </header>
@@ -269,7 +291,7 @@ const App: React.FC = () => {
           />
         )}
         {role !== UserRole.PROSPECT && (
-          <div className="fixed bottom-6 right-6 z-50">
+          <div className="fixed bottom-6 right-6 z-30">
             <button 
               onClick={() => setActiveTab('voice')}
               className="w-14 h-14 bg-red-600 rounded-full shadow-lg shadow-red-600/20 flex items-center justify-center hover:scale-110 transition-transform active:scale-95 group"
