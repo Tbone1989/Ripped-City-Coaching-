@@ -32,8 +32,48 @@ const CoachCMS: React.FC<CoachCMSProps> = ({ content, onUpdate }) => {
     setLocalContent({ ...localContent, testimonials: newTest });
   };
 
+  const handleImageUpload = (field: keyof LandingPageContent, file: File | null) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLocalContent({ ...localContent, [field]: reader.result as string });
+    };
+    reader.readAsDataURL(file);
+  };
+
   const inputStyles = "w-full bg-gray-950 border border-gray-800 rounded-xl p-4 text-xs font-bold outline-none focus:border-red-600 transition-all text-gray-200";
   const labelStyles = "text-[10px] font-black uppercase text-gray-500 mb-2 block tracking-widest";
+
+  const renderImageUploader = (label: string, field: keyof LandingPageContent, currentUrl: string) => (
+    <div className="space-y-2">
+      <label className={labelStyles}>{label}</label>
+      <div className="flex gap-4 items-start">
+        <div className="w-24 h-24 rounded-xl border border-gray-800 overflow-hidden bg-black shrink-0">
+          <img src={currentUrl} alt="Preview" className="w-full h-full object-cover" />
+        </div>
+        <div className="flex-1 space-y-2">
+           <input 
+              type="text" 
+              value={currentUrl as string}
+              onChange={e => setLocalContent({...localContent, [field]: e.target.value})}
+              className={inputStyles}
+              placeholder="Image URL"
+           />
+           <div className="relative">
+             <input 
+               type="file" 
+               accept="image/*"
+               className="absolute inset-0 opacity-0 cursor-pointer"
+               onChange={(e) => handleImageUpload(field, e.target.files?.[0] || null)}
+             />
+             <button className="w-full py-3 bg-gray-900 border border-gray-800 rounded-xl text-[10px] font-black uppercase text-gray-400 hover:text-white hover:border-gray-600 transition-all">
+               <i className="fas fa-upload mr-2"></i> Upload File
+             </button>
+           </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="p-4 md:p-8 space-y-12 animate-in fade-in duration-700 max-w-6xl mx-auto pb-32">
@@ -76,14 +116,7 @@ const CoachCMS: React.FC<CoachCMSProps> = ({ content, onUpdate }) => {
                   className={`${inputStyles} h-24`}
                 />
               </div>
-              <div>
-                <label className={labelStyles}>Hero Background URL</label>
-                <input 
-                  value={localContent.heroImage} 
-                  onChange={e => setLocalContent({...localContent, heroImage: e.target.value})}
-                  className={inputStyles}
-                />
-              </div>
+              {renderImageUploader("Hero Background", "heroImage", localContent.heroImage)}
             </div>
           </div>
 
@@ -92,22 +125,8 @@ const CoachCMS: React.FC<CoachCMSProps> = ({ content, onUpdate }) => {
               <i className="fas fa-retweet text-red-500"></i> Transformation Proof
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className={labelStyles}>Before Image URL</label>
-                <input 
-                  value={localContent.beforeImage} 
-                  onChange={e => setLocalContent({...localContent, beforeImage: e.target.value})}
-                  className={inputStyles}
-                />
-              </div>
-              <div>
-                <label className={labelStyles}>After Image URL</label>
-                <input 
-                  value={localContent.afterImage} 
-                  onChange={e => setLocalContent({...localContent, afterImage: e.target.value})}
-                  className={inputStyles}
-                />
-              </div>
+              {renderImageUploader("Before Image", "beforeImage", localContent.beforeImage)}
+              {renderImageUploader("After Image", "afterImage", localContent.afterImage)}
             </div>
           </div>
         </section>

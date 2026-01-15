@@ -16,62 +16,33 @@ interface MenuItem {
   id: string;
   label: string;
   icon: string;
-  roles: UserRole[];
-  minTier: ExperienceTier;
-  category: 'CORE' | 'MANAGEMENT' | 'DIAGNOSTICS' | 'SYSTEM';
+  role: UserRole;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role, setRole, isOpen, setIsOpen, tier = 'BEGINNER' }) => {
-  const menuItems: MenuItem[] = [
-    // CORE
-    { id: 'dashboard', label: 'Command Center', icon: 'fa-table-columns', roles: [UserRole.COACH, UserRole.CLIENT], minTier: 'BEGINNER', category: 'CORE' },
-    { id: 'workout', label: 'Protocol Execution', icon: 'fa-dumbbell', roles: [UserRole.COACH, UserRole.CLIENT], minTier: 'BEGINNER', category: 'CORE' },
-    { id: 'roadmap', label: 'Evolution Roadmap', icon: 'fa-timeline', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'BEGINNER', category: 'CORE' },
-    { id: 'strategy', label: 'Advice Hub', icon: 'fa-chess-knight', roles: [UserRole.COACH, UserRole.CLIENT], minTier: 'BEGINNER', category: 'CORE' },
-
-    // MANAGEMENT (COACH ONLY)
-    { id: 'roster', label: 'Tactical Roster', icon: 'fa-id-card-clip', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'MANAGEMENT' },
-    { id: 'units', label: 'Tactical Units', icon: 'fa-users-rays', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'MANAGEMENT' },
-    { id: 'crm', label: 'Prospect Hub', icon: 'fa-user-plus', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'MANAGEMENT' },
-    { id: 'intelligence', label: 'Business Intel', icon: 'fa-chart-pie', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'MANAGEMENT' },
-    { id: 'terminal', label: 'Payment Terminal', icon: 'fa-wallet', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'MANAGEMENT' },
-
-    // DIAGNOSTICS & TOOLS
-    { id: 'scanner', label: 'Meal Auditor', icon: 'fa-bowl-food', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'BEGINNER', category: 'DIAGNOSTICS' },
-    { id: 'library', label: 'Clinical Archive', icon: 'fa-book-medical', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'BEGINNER', category: 'DIAGNOSTICS' },
-    { id: 'body-scan', label: 'Composition Hub', icon: 'fa-weight-scale', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'INTERMEDIATE', category: 'DIAGNOSTICS' },
-    { id: 'fuel-audit', label: 'Fuel Auditor', icon: 'fa-barcode', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'BEGINNER', category: 'DIAGNOSTICS' },
-    { id: 'form-audit', label: 'Kinetic Audit', icon: 'fa-video', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'INTERMEDIATE', category: 'DIAGNOSTICS' },
-    { id: 'molecular', label: 'Molecular Hub', icon: 'fa-flask-vial', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'ADVANCED', category: 'DIAGNOSTICS' },
-    { id: 'health', label: 'Biomarker Suite', icon: 'fa-heart-pulse', roles: [UserRole.COACH, UserRole.CLIENT], minTier: 'ADVANCED', category: 'DIAGNOSTICS' },
-    
-    // SYSTEM SETTINGS
-    { id: 'cms', label: 'Website Master', icon: 'fa-globe', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'SYSTEM' },
-    { id: 'auditor', label: 'Integrity Audit', icon: 'fa-shield-halved', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'SYSTEM' },
-    { id: 'voice', label: 'Remote Connect', icon: 'fa-headset', roles: [UserRole.COACH, UserRole.CLIENT], minTier: 'BEGINNER', category: 'CORE' },
-    { id: 'billing', label: 'Financial Ledger', icon: 'fa-receipt', roles: [UserRole.CLIENT], minTier: 'BEGINNER', category: 'CORE' },
-    { id: 'schedule', label: 'Strategic Schedule', icon: 'fa-calendar-days', roles: [UserRole.COACH, UserRole.CLIENT], minTier: 'BEGINNER', category: 'CORE' },
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role, isOpen, setIsOpen }) => {
+  const coachItems: MenuItem[] = [
+    { id: 'dashboard', label: 'Command Center', icon: 'fa-table-columns', role: UserRole.COACH },
+    { id: 'roster', label: 'Client Roster', icon: 'fa-users', role: UserRole.COACH },
+    { id: 'units', label: 'Tactical Units', icon: 'fa-layer-group', role: UserRole.COACH },
+    { id: 'crm', label: 'Prospect CRM', icon: 'fa-user-plus', role: UserRole.COACH },
+    { id: 'cms', label: 'Website CMS', icon: 'fa-globe', role: UserRole.COACH },
+    { id: 'intelligence', label: 'Business Intel', icon: 'fa-chart-line', role: UserRole.COACH },
+    { id: 'terminal', label: 'Payment Terminal', icon: 'fa-credit-card', role: UserRole.COACH },
+    { id: 'auditor', label: 'System Audit', icon: 'fa-shield-halved', role: UserRole.COACH },
   ];
 
-  const filteredItems = menuItems.filter(item => {
-    const roleMatch = item.roles.includes(role);
-    if (!roleMatch) return false;
+  const clientItems: MenuItem[] = [
+    { id: 'dashboard', label: 'Daily Protocol', icon: 'fa-calendar-day', role: UserRole.CLIENT },
+    { id: 'workout', label: 'Gym Mode', icon: 'fa-dumbbell', role: UserRole.CLIENT },
+    { id: 'grocery', label: 'Grocery List', icon: 'fa-basket-shopping', role: UserRole.CLIENT },
+    { id: 'schedule', label: 'Schedule', icon: 'fa-clock', role: UserRole.CLIENT },
+    { id: 'photos', label: 'Progress Photos', icon: 'fa-camera', role: UserRole.CLIENT },
+    { id: 'scanner', label: 'Meal Scan', icon: 'fa-utensils', role: UserRole.CLIENT },
+    { id: 'fuel-audit', label: 'Label Scan', icon: 'fa-barcode', role: UserRole.CLIENT },
+    { id: 'voice', label: 'Coach Connect', icon: 'fa-headset', role: UserRole.CLIENT },
+  ];
 
-    if (role === UserRole.COACH) return true;
-    
-    const tierMap: Record<ExperienceTier, number> = { 
-      'BEGINNER': 1, 
-      'INTERMEDIATE': 2, 
-      'ADVANCED': 3, 
-      'ELITE': 4,
-      'PRO': 5 
-    };
-    const athleteTierValue = tierMap[tier];
-    const itemTierValue = tierMap[item.minTier as ExperienceTier];
-    return athleteTierValue >= itemTierValue;
-  });
-
-  const categories = Array.from(new Set(filteredItems.map(i => i.category)));
+  const items = role === UserRole.COACH ? coachItems : clientItems;
 
   return (
     <>
@@ -103,59 +74,28 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role, setRol
         </div>
 
         <nav className="flex-1 py-6 overflow-hidden">
-          <div className="space-y-8 px-3 overflow-y-auto h-full scrollbar-hide">
-            {categories.map(cat => (
-              <div key={cat} className="space-y-1">
-                {isOpen && (
-                  <p className="px-4 text-[9px] font-black text-gray-600 uppercase tracking-[0.2em] mb-3">
-                    {cat}
-                  </p>
-                )}
-                <ul className="space-y-1">
-                  {filteredItems.filter(i => i.category === cat).map((item) => (
-                    <li key={item.id}>
-                      <button
-                        onClick={() => {
-                          setActiveTab(item.id);
-                          if (window.innerWidth < 1024) setIsOpen(false);
-                        }}
-                        className={`
-                          w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all group
-                          ${activeTab === item.id ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'}
-                        `}
-                      >
-                        <i className={`fas ${item.icon} w-5 shrink-0 text-sm`}></i>
-                        {isOpen && <span className="text-xs font-bold uppercase tracking-wider whitespace-nowrap">{item.label}</span>}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+          <div className="space-y-2 px-3 overflow-y-auto h-full scrollbar-hide">
+            {items.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (window.innerWidth < 1024) setIsOpen(false);
+                }}
+                className={`
+                  w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all group
+                  ${activeTab === item.id ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'}
+                `}
+              >
+                <i className={`fas ${item.icon} w-5 shrink-0 text-sm`}></i>
+                {isOpen && <span className="text-xs font-bold uppercase tracking-wider whitespace-nowrap">{item.label}</span>}
+              </button>
             ))}
           </div>
         </nav>
 
-        <div className="p-4 mt-auto border-t border-gray-800">
-          <div className="flex flex-col gap-2">
-            {isOpen && <span className="text-[9px] text-gray-500 font-black uppercase mb-1 tracking-widest">Identity Switch</span>}
-            <div className="flex flex-col gap-1.5">
-              {[UserRole.COACH, UserRole.CLIENT].map(r => (
-                <button
-                  key={r}
-                  onClick={() => {
-                    setRole(r);
-                    setActiveTab('dashboard');
-                  }}
-                  className={`
-                    text-[9px] px-2 py-1.5 rounded border uppercase font-black tracking-tighter
-                    ${role === r ? 'border-red-600 text-red-500 bg-red-600/5' : 'border-gray-800 text-gray-500 hover:border-gray-600'}
-                  `}
-                >
-                  {isOpen ? r : r.charAt(0)}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="p-4 border-t border-gray-800">
+           {isOpen && <div className="text-[9px] font-black uppercase text-gray-600 text-center tracking-widest">{role} PORTAL</div>}
         </div>
       </div>
     </>

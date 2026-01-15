@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserRole, Notification, ExperienceTier, LandingPageContent } from './types';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -34,6 +34,7 @@ import CoachPaymentTerminal from './components/CoachPaymentTerminal';
 import WorkoutInterface from './components/WorkoutInterface';
 import TrainingRoadmap from './components/TrainingRoadmap';
 import ClinicalArchive from './components/ClinicalArchive';
+import GroceryList from './components/GroceryList';
 
 const App: React.FC = () => {
   const [role, setRole] = useState<UserRole>(UserRole.PROSPECT);
@@ -122,65 +123,40 @@ const App: React.FC = () => {
 
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard role={role} />;
+        return <Dashboard role={role} onNavigate={setActiveTab} />;
+      case 'workout':
+        return <WorkoutInterface />;
+      case 'grocery':
+        return <GroceryList />;
+      case 'schedule':
+        return <ScheduleView onReminderAction={(msg) => addNotification("Task Complete", msg, "SUCCESS")} />;
+      case 'photos':
+        return <ProgressPhotos />;
+      case 'scanner':
+        return <MealScanner />;
+      case 'fuel-audit':
+        return <ProductScanner tier={tier} />;
+      case 'voice':
+        return <RemoteConsultation />;
+      
+      // Coach Only Tabs
       case 'roster':
         return <ClientRoster />;
-      case 'timeline':
-        return <HabitEvolution />;
-      case 'strategy':
-        return <PerformanceAdvice />;
       case 'units':
         return <UnitCommand />;
       case 'crm':
         return <ProspectCRM />;
-      case 'marketing':
-        return <SocialMarketing />;
-      case 'scanner':
-        return <MealScanner />;
-      case 'body-scan':
-        return <BodyScannerHub tier={tier} />;
-      case 'fuel-audit':
-        return <ProductScanner tier={tier} />;
-      case 'dining':
-        return <DiningGuide tier={tier} />;
-      case 'intelligence':
-        return <BusinessIntel />;
-      case 'female-suite':
-        return <HormonalSync />;
-      case 'expert':
-        return <ProtocolExpert />;
-      case 'photos':
-        return <ProgressPhotos />;
-      case 'form-audit':
-        return <KineticFormAudit />;
-      case 'molecular':
-        return <MolecularSynergy />;
-      case 'circadian':
-        return <CircadianOptimization />;
-      case 'auditor':
-        return <IntegrityAuditor appState={appState} />;
-      case 'generator':
-        return <PrecisionGenerator />;
-      case 'health':
-        return <HealthSuite />;
-      case 'voice':
-        return <RemoteConsultation />;
-      case 'billing':
-        return <InvoicesView />;
       case 'cms':
         return <CoachCMS content={landingContent} onUpdate={setLandingContent} />;
+      case 'intelligence':
+        return <BusinessIntel />;
       case 'terminal':
         return <CoachPaymentTerminal />;
-      case 'schedule':
-        return <ScheduleView onReminderAction={(msg) => addNotification("Task Complete", msg, "SUCCESS")} />;
-      case 'workout':
-        return <WorkoutInterface />;
-      case 'roadmap':
-        return <TrainingRoadmap />;
-      case 'library':
-        return <ClinicalArchive />;
+      case 'auditor':
+        return <IntegrityAuditor appState={appState} />;
+
       default:
-        return <Dashboard role={role} />;
+        return <Dashboard role={role} onNavigate={setActiveTab} />;
     }
   };
 
@@ -216,23 +192,6 @@ const App: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-2 md:gap-4">
-              {role === UserRole.CLIENT && (
-                 <div className="hidden md:flex flex-col items-end mr-2">
-                    <span className="text-[8px] font-black uppercase text-gray-500 tracking-widest">Tier</span>
-                    <select 
-                      value={tier} 
-                      onChange={(e) => setTier(e.target.value as ExperienceTier)}
-                      className="bg-transparent text-[10px] font-black text-red-500 uppercase border-none focus:ring-0 cursor-pointer p-0"
-                    >
-                      <option value="BEGINNER">BEGINNER</option>
-                      <option value="INTERMEDIATE">INTERMEDIATE</option>
-                      <option value="ADVANCED">ADVANCED</option>
-                      <option value="ELITE">ELITE</option>
-                      <option value="PRO">PRO</option>
-                    </select>
-                 </div>
-              )}
-              
               <div className="relative">
                 <button 
                   onClick={() => setShowNotificationCenter(!showNotificationCenter)}
@@ -278,16 +237,6 @@ const App: React.FC = () => {
                 )}
               </div>
 
-              {role === UserRole.COACH && (
-                <button 
-                  onClick={() => setActiveTab('cms')}
-                  className={`p-2 transition-all hover:scale-110 ${activeTab === 'cms' ? 'text-red-500' : 'text-gray-400 hover:text-white'}`}
-                  title="Landing Page Settings"
-                >
-                  <i className={`fas fa-cog ${activeTab !== 'cms' && 'animate-[spin_10s_linear_infinite]'}`}></i>
-                </button>
-              )}
-              
               <div 
                 className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-red-600 cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => {
@@ -308,16 +257,6 @@ const App: React.FC = () => {
             notification={activeToast} 
             onClose={() => setActiveToast(null)} 
           />
-        )}
-        {role !== UserRole.PROSPECT && (
-          <div className="fixed bottom-6 right-6 z-30">
-            <button 
-              onClick={() => setActiveTab('workout')}
-              className="w-14 h-14 bg-red-600 rounded-full shadow-lg shadow-red-600/20 flex items-center justify-center hover:scale-110 transition-transform active:scale-95 group"
-            >
-              <i className="fas fa-dumbbell text-white text-xl group-hover:animate-bounce"></i>
-            </button>
-          </div>
         )}
       </main>
     </div>
