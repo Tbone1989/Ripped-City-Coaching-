@@ -31,13 +31,16 @@ import DiningGuide from './components/DiningGuide';
 import BodyScannerHub from './components/BodyScannerHub';
 import CoachCMS from './components/CoachCMS';
 import CoachPaymentTerminal from './components/CoachPaymentTerminal';
+import WorkoutInterface from './components/WorkoutInterface';
+import TrainingRoadmap from './components/TrainingRoadmap';
+import ClinicalArchive from './components/ClinicalArchive';
 
 const App: React.FC = () => {
   const [role, setRole] = useState<UserRole>(UserRole.PROSPECT);
   const [tier, setTier] = useState<ExperienceTier>('BEGINNER'); 
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile first: hidden
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [activeToast, setActiveToast] = useState<Notification | null>(null);
@@ -170,6 +173,12 @@ const App: React.FC = () => {
         return <CoachPaymentTerminal />;
       case 'schedule':
         return <ScheduleView onReminderAction={(msg) => addNotification("Task Complete", msg, "SUCCESS")} />;
+      case 'workout':
+        return <WorkoutInterface />;
+      case 'roadmap':
+        return <TrainingRoadmap />;
+      case 'library':
+        return <ClinicalArchive />;
       default:
         return <Dashboard role={role} />;
     }
@@ -269,7 +278,6 @@ const App: React.FC = () => {
                 )}
               </div>
 
-              {/* COACH MASTER SETTINGS QUICK ACCESS */}
               {role === UserRole.COACH && (
                 <button 
                   onClick={() => setActiveTab('cms')}
@@ -304,10 +312,10 @@ const App: React.FC = () => {
         {role !== UserRole.PROSPECT && (
           <div className="fixed bottom-6 right-6 z-30">
             <button 
-              onClick={() => setActiveTab('voice')}
+              onClick={() => setActiveTab('workout')}
               className="w-14 h-14 bg-red-600 rounded-full shadow-lg shadow-red-600/20 flex items-center justify-center hover:scale-110 transition-transform active:scale-95 group"
             >
-              <i className="fas fa-microphone text-white text-xl group-hover:animate-bounce"></i>
+              <i className="fas fa-dumbbell text-white text-xl group-hover:animate-bounce"></i>
             </button>
           </div>
         )}

@@ -25,25 +25,24 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role, setRol
   const menuItems: MenuItem[] = [
     // CORE
     { id: 'dashboard', label: 'Command Center', icon: 'fa-table-columns', roles: [UserRole.COACH, UserRole.CLIENT], minTier: 'BEGINNER', category: 'CORE' },
-    { id: 'timeline', label: 'Evolution Timeline', icon: 'fa-timeline', roles: [UserRole.CLIENT], minTier: 'BEGINNER', category: 'CORE' },
+    { id: 'workout', label: 'Protocol Execution', icon: 'fa-dumbbell', roles: [UserRole.COACH, UserRole.CLIENT], minTier: 'BEGINNER', category: 'CORE' },
+    { id: 'roadmap', label: 'Evolution Roadmap', icon: 'fa-timeline', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'BEGINNER', category: 'CORE' },
     { id: 'strategy', label: 'Advice Hub', icon: 'fa-chess-knight', roles: [UserRole.COACH, UserRole.CLIENT], minTier: 'BEGINNER', category: 'CORE' },
 
     // MANAGEMENT (COACH ONLY)
     { id: 'roster', label: 'Tactical Roster', icon: 'fa-id-card-clip', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'MANAGEMENT' },
     { id: 'units', label: 'Tactical Units', icon: 'fa-users-rays', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'MANAGEMENT' },
     { id: 'crm', label: 'Prospect Hub', icon: 'fa-user-plus', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'MANAGEMENT' },
-    { id: 'marketing', label: 'Growth Engine', icon: 'fa-bullhorn', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'MANAGEMENT' },
     { id: 'intelligence', label: 'Business Intel', icon: 'fa-chart-pie', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'MANAGEMENT' },
     { id: 'terminal', label: 'Payment Terminal', icon: 'fa-wallet', roles: [UserRole.COACH], minTier: 'BEGINNER', category: 'MANAGEMENT' },
 
     // DIAGNOSTICS & TOOLS
     { id: 'scanner', label: 'Meal Auditor', icon: 'fa-bowl-food', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'BEGINNER', category: 'DIAGNOSTICS' },
-    { id: 'body-scan', label: 'Bio-Impedance Hub', icon: 'fa-weight-scale', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'INTERMEDIATE', category: 'DIAGNOSTICS' },
+    { id: 'library', label: 'Clinical Archive', icon: 'fa-book-medical', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'BEGINNER', category: 'DIAGNOSTICS' },
+    { id: 'body-scan', label: 'Composition Hub', icon: 'fa-weight-scale', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'INTERMEDIATE', category: 'DIAGNOSTICS' },
     { id: 'fuel-audit', label: 'Fuel Auditor', icon: 'fa-barcode', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'BEGINNER', category: 'DIAGNOSTICS' },
-    { id: 'dining', label: 'Dining Guide', icon: 'fa-utensils', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'BEGINNER', category: 'DIAGNOSTICS' },
     { id: 'form-audit', label: 'Kinetic Audit', icon: 'fa-video', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'INTERMEDIATE', category: 'DIAGNOSTICS' },
     { id: 'molecular', label: 'Molecular Hub', icon: 'fa-flask-vial', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'ADVANCED', category: 'DIAGNOSTICS' },
-    { id: 'photos', label: 'Physique Timeline', icon: 'fa-images', roles: [UserRole.CLIENT, UserRole.COACH], minTier: 'BEGINNER', category: 'DIAGNOSTICS' },
     { id: 'health', label: 'Biomarker Suite', icon: 'fa-heart-pulse', roles: [UserRole.COACH, UserRole.CLIENT], minTier: 'ADVANCED', category: 'DIAGNOSTICS' },
     
     // SYSTEM SETTINGS

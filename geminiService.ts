@@ -3,25 +3,30 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 export const SYSTEM_INSTRUCTION = `You are the Ripped City Master Performance Architect. You hold multi-disciplinary doctorates in Human Physiology, Biochemistry, Bio-mechanics, and Neural Engineering.
 
-CRITICAL ROLE: You are the guardian of biological integrity. 
+CRITICAL ROLE: You are the guardian of biological integrity and the hunter of metabolic friction.
 
-SUPPLEMENT QUALITY PROTOCOL (CLEAN VS. REGULAR GAINERS):
-- REGULAR GAINERS (DIRTY): Usually garbage. Red flag ingredients: Maltodextrin (insulin spike nightmare), excessive refined sugars, proprietary blends, soy protein fillers, artificial dyes (Red 40, etc.), and "Amino Spiking" (cheap taurine/glycine used to inflate protein counts).
-- CLEAN MASS GAINERS: Must utilize whole-food carbohydrate sources (Oat flour, Sweet Potato powder, Quinoa), high-quality protein (Grass-fed Whey Isolate, Micellar Casein), and healthy lipid profiles (MCTs, Avocado oil powder). 
-- ARCHITECT VERDICT: If an athlete scans a "Regular Gainer" loaded with maltodextrin, inform them they are inducing systemic inflammation and pancreatic stress rather than quality hypertrophy.
+FITNESS INDUSTRY AUDIT PROTOCOLS:
+1. PROTEIN QUALITY: 
+   - Flag "Amino Spiking": Look for Taurine, Glycine, or Creatine added to protein powder to inflate nitrogen counts. 
+   - Source Audit: Prefer Grass-fed Whey Isolate or Micellar Casein. Flag "Soy Protein Isolate" as low-quality filler.
+2. PRE-WORKOUT & ERGOGENICS:
+   - "Proprietary Blends" are a BREACH OF CONTRACT. If dosages aren't listed, inform the athlete they are buying overpriced water.
+   - Stimulant Floor: Flag anything with >400mg caffeine as "Neural Burnout Hazard."
+3. BCAAs VS EAAs:
+   - BCAAs are often a marketing scam. Recommend Full Spectrum EAAs instead.
+4. FILLER DEFENSE:
+   - Maltodextrin, Dextrose, and excessive Sucralose are "Metabolic Poisons." Flag Artificial Dyes (Red 40, Yellow 5).
+
+CHRONIC ILLNESS & SYSTEMIC HEALTH PROTOCOLS:
+1. METABOLIC FRICTION: Identify how conditions like Insulin Resistance, PCOS, or Hypothyroidism sabotage nutrient partitioning. 
+2. AUTOIMMUNE/INFLAMMATION: Identify how systemic inflammation (Hashimoto's, Celiac, IBS) prevents CNS recovery and causes "unexplained" water retention.
+3. PROTOCOL DANGER: Explicitly warn if a common fitness protocol (e.g., high-intensity stimulants, extreme calorie cutting, high-carb refeeds) will EXACERBATE a chronic condition.
+4. RECOVERY PRIORITY: For athletes with illness, shift the focus from "Grind" to "Biological Management."
 
 ADAPTIVE COACHING LOGIC:
-1. ACCOUNTABILITY: You are an authoritarian figure for biological integrity. If an item is not part of a high-performance protocol or doesn't fit the athlete's goals, do NOT be kind. Inform them bluntly that they are sabotaging their own evolution.
-2. ALLERGEN SAFETY: You must NEVER suggest a food or supplement that contains a known allergen for the athlete. If they scan something they are allergic to, warn them aggressively. 
-3. INTERACTION DEFENSE: You must identify hazardous interactions between:
-   - Drugs and Food (e.g., Grapefruit and Statins).
-   - Supplements and Drugs (e.g., St. John's Wort and SSRIs).
-   - Vitamin/Mineral antagonisms (e.g., Zinc and Copper).
-4. FOR BEGINNERS: Firm but corrective. Focus on "Better, not Perfect" but call out junk food.
-5. FOR ELITES: Brutally clinical. Treat dietary deviations as a breach of professional contract.
-6. FOR PROS: You are their biological technician. No encouragement, only data. Focus on stage-ready conditioning and extreme pharmacological precision.
-
-EXAMPLE CASE: Client "Gifford" is allergic to shellfish and peanuts. You must exclude these from all plans and flag them in scans.
+1. ACCOUNTABILITY: You are an authoritarian figure for biological integrity.
+2. ALLERGEN SAFETY: NEVER suggest a food or supplement that contains a known allergen.
+3. INTERACTION DEFENSE: Identify hazardous interactions between drugs, conditions, and supplements.
 
 MANTRA: "Evolution is an engineered outcome. Mediocrity is a choice."`;
 
@@ -42,6 +47,35 @@ export const getExpertConsultation = async (prompt: string, history: any[] = [])
 
   const response = await chat.sendMessage({ message: prompt });
   return response.text;
+};
+
+export const getArchiveDossier = async (query: string) => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: `Provide a clinical dossier for the query: ${query}. 
+    Identify if this is a SUBSTANCE (supplement/drug) or a CONDITION (illness/pathology).
+    - If SUBSTANCE: Analyze mechanism, performance ROI, and hazards.
+    - If CONDITION: Analyze its biological friction on performance, risks from common training/diet protocols, and management levers.
+    Be brutally clinical and authoritative. Return JSON.`,
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          type: { type: Type.STRING, description: "SUBSTANCE or CONDITION" },
+          mechanism: { type: Type.STRING, description: "Biological mechanism or pathology breakdown" },
+          performanceImpact: { type: Type.STRING, description: "ROI for substances or Friction for conditions" },
+          hazards: { type: Type.ARRAY, items: { type: Type.STRING } },
+          verdict: { type: Type.STRING },
+          safetyIndex: { type: Type.NUMBER, description: "1-10 rating of biological safety/utility" }
+        }
+      }
+    }
+  });
+  return JSON.parse(response.text || '{}');
 };
 
 export const analyzeBodyScan = async (base64ImageData: string, tier: string = 'BEGINNER', mimeType: string = 'image/jpeg') => {
@@ -85,10 +119,8 @@ export const analyzeProductLabel = async (base64ImageData: string, tier: string 
         { inlineData: { data: cleanBase64(base64ImageData), mimeType } },
         { text: `Perform a Ripped City Fuel Audit. 
         Athlete Tier: ${tier}. 
-        KNOWN ALLERGENS: ${allergens.join(', ')}.
-        SPECIAL FOCUS: Audit Mass Gainers. Differentiate between CLEAN (Whole food carbs, quality protein) and REGULAR (Maltodextrin, high sugar, soy, artificial dyes). 
+        Identify amino spiking, proprietary blends, and low-quality fillers.
         If the product contains Maltodextrin or Soy fillers, be BLUNT about it being 'Biological Trash'.
-        If the product contains an allergen, trigger a CRITICAL ALLERGY ALERT.
         Return JSON.` }
       ]
     },
@@ -120,9 +152,7 @@ export const analyzeMealPhoto = async (base64ImageData: string, currentTarget: s
       parts: [
         { inlineData: { data: cleanBase64(base64ImageData), mimeType } },
         { text: `Audit this meal for a ${tier} athlete. Target: ${currentTarget}.
-        KNOWN ALLERGENS: ${allergens.join(', ')}.
-        If an allergen is detected, flag it as a LETHAL RISK.
-        If off-track or containing 'dirty' ingredients (maltodextrin-heavy sauces, etc.), inform them they are sabotaging their professional goals.
+        Flag any inflammatory markers or hidden sugars.
         Return JSON.` }
       ]
     },
@@ -158,9 +188,7 @@ export const generateMealPlan = async (profile: any) => {
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: `Generate a high-performance meal plan for a ${profile.tier} athlete. 
-    Profile: ${JSON.stringify(profile)}.
-    STRICT CONSTRAINT: Do NOT include any of these allergens: ${profile.allergens?.join(', ') || 'None'}.
-    If ${profile.tier} is PRO, maximize nutrient timing and metabolic efficiency. Use only CLEAN ingredients.
+    Use only clean whole-food sources. No processed garbage.
     Return JSON.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
@@ -200,8 +228,8 @@ export const analyzeMolecularSynergy = async (stack: string) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Analyze synergy and hazardous interactions for this stack: ${stack}. 
-    Identify receptor competition and metabolic hazards. Be brutally clinical. Return JSON.`,
+    contents: `Analyze interaction dynamics for this stack: ${stack}. 
+    Check for receptor competition and liver/kidney strain. Return JSON.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -233,7 +261,7 @@ export const getDailyCoachBriefing = async (unitState: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Coach briefing: ${JSON.stringify(unitState)}.`,
+    contents: `Coach briefing for Unit State: ${JSON.stringify(unitState)}.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -264,7 +292,7 @@ export const getAthleteBriefing = async (athleteData: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Briefing for: ${JSON.stringify(athleteData)}.`,
+    contents: `Individual Athlete Briefing: ${JSON.stringify(athleteData)}.`,
     config: { systemInstruction: SYSTEM_INSTRUCTION }
   });
   return response.text;
@@ -274,7 +302,7 @@ export const getRestaurantAdvice = async (restaurant: string, tier: string = 'BE
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `The athlete is at ${restaurant}. Tier: ${tier}. ALLERGENS: ${allergens.join(', ')}. Return JSON.`,
+    contents: `Menu Audit for ${restaurant}. Tier: ${tier}. Return JSON.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -297,7 +325,7 @@ export const generateCircadianProtocol = async (sleepData: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Circadian audit: ${JSON.stringify(sleepData)}.`,
+    contents: `Circadian Recovery Audit: ${JSON.stringify(sleepData)}.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -322,7 +350,7 @@ export const auditKineticForm = async (base64ImageData: string, exercise: string
     contents: {
       parts: [
         { inlineData: { data: cleanBase64(base64ImageData), mimeType } },
-        { text: `Audit form for: ${exercise}.` }
+        { text: `Biomechanical Audit: ${exercise}.` }
       ]
     },
     config: {
@@ -346,7 +374,7 @@ export const generateWorkoutBlock = async (profile: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Workout for a ${profile.tier} athlete: ${JSON.stringify(profile)}.`,
+    contents: `Periodized Workout Block for ${profile.tier}: ${JSON.stringify(profile)}.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -388,7 +416,7 @@ export const runSystemAudit = async (appState: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Run a deep system integrity audit on this state: ${JSON.stringify(appState)}.`,
+    contents: `Unit Integrity Audit: ${JSON.stringify(appState)}.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -415,7 +443,7 @@ export const generateRehabProtocol = async (data: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Generate clinical rehab protocol for: ${JSON.stringify(data)}.`,
+    contents: `Clinical Rehab Protocol: ${JSON.stringify(data)}.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -460,7 +488,7 @@ export const analyzeBloodwork = async (base64: string, mimeType: string) => {
     contents: {
       parts: [
         { inlineData: { data: cleanBase64(base64), mimeType } },
-        { text: "Extract biomarkers and statuses. Return JSON." }
+        { text: "Extract Biomarkers. Flag any levels causing metabolic friction. Return JSON." }
       ]
     },
     config: {
@@ -495,7 +523,7 @@ export const optimizeStrategicSchedule = async (appointments: any[], bioData: an
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Optimize schedule: ${JSON.stringify({ appointments, bioData })}.`,
+    contents: `Temporal Optimization for Specialist Consultation: ${JSON.stringify({ appointments, bioData })}.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -524,7 +552,7 @@ export const runBatchAudit = async (data: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Batch audit: ${JSON.stringify(data)}.`,
+    contents: `Unit Batch Adherence Audit: ${JSON.stringify(data)}.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -552,7 +580,7 @@ export const analyzeMarketIntel = async (data: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Market intel: ${JSON.stringify(data)}.`,
+    contents: `Business Marketing Intelligence Audit: ${JSON.stringify(data)}.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -577,7 +605,7 @@ export const analyzePhysiquePhoto = async (base64: string, phase: string) => {
     contents: {
       parts: [
         { inlineData: { data: cleanBase64(base64), mimeType: 'image/jpeg' } },
-        { text: `Analyze physique evolution for ${phase} phase.` }
+        { text: `Physique Structural Audit for ${phase}. Analyze muscle density and subcutaneous water.` }
       ]
     },
     config: { systemInstruction: SYSTEM_INSTRUCTION }
@@ -589,7 +617,7 @@ export const generateMarketingCopy = async (data: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Generate marketing for: ${JSON.stringify(data)}.`,
+    contents: `Generate High-Authority Marketing Copy: ${JSON.stringify(data)}.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -609,7 +637,7 @@ export const getStrategicPerformanceAdvice = async (data: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Performance strategy for: ${JSON.stringify(data)}.`,
+    contents: `Direct Performance Strategy Engineering: ${JSON.stringify(data)}.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",

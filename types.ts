@@ -22,6 +22,30 @@ export type AthleticDiscipline =
   | 'TACTICAL' 
   | 'LIFESTYLE';
 
+export interface SetRecord {
+  weight: string;
+  reps: string;
+  completed: boolean;
+  rpe?: number;
+}
+
+export interface Exercise {
+  id: string;
+  name: string;
+  notes: string;
+  sets: SetRecord[];
+}
+
+export interface WorkoutSession {
+  id: string;
+  date: string;
+  name: string;
+  exercises: Exercise[];
+  totalVolume: number;
+  durationMinutes: number;
+  architectRating: 'SUPERIOR' | 'OPTIMAL' | 'DEVIATING';
+}
+
 export interface HabitTask {
   id: string;
   title: string;
