@@ -1,7 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
 import { UserRole, Notification, ExperienceTier, LandingPageContent } from './types';
-import { onAuthChange, getUserProfile } from './services/authService';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import IntegrityAuditor from './components/AIAuditor';
@@ -38,7 +37,6 @@ import ClinicalArchive from './components/ClinicalArchive';
 import GroceryList from './components/GroceryList';
 
 const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [role, setRole] = useState<UserRole>(UserRole.PROSPECT);
   const [tier, setTier] = useState<ExperienceTier>('BEGINNER'); 
   const [isOnboarding, setIsOnboarding] = useState(false);
@@ -47,7 +45,6 @@ const App: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [activeToast, setActiveToast] = useState<Notification | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const [landingContent, setLandingContent] = useState<LandingPageContent>({
     heroTitle: "FORGE YOUR\nLEGACY",
@@ -67,31 +64,6 @@ const App: React.FC = () => {
     ]
   });
 
-  // Listen to Firebase auth state changes
-  useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      setCurrentUser(user);
-      
-      if (user) {
-        // User is signed in, get their profile
-        const profile = await getUserProfile(user.uid);
-        if (profile) {
-          setRole(profile.role === 'coach' ? UserRole.COACH : UserRole.CLIENT);
-          setActiveTab('dashboard');
-          setIsSidebarOpen(window.innerWidth > 1024);
-        }
-      } else {
-        // User is signed out
-        setRole(UserRole.PROSPECT);
-        setActiveTab('landing');
-      }
-      
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   const addNotification = (title: string, message: string, type: any) => {
     const newNotif: Notification = {
       id: Math.random().toString(36).substr(2, 9),
@@ -105,19 +77,16 @@ const App: React.FC = () => {
     setActiveToast(newNotif);
   };
 
-  const handleLogin = async (user: User) => {
-    const profile = await getUserProfile(user.uid);
-    if (profile) {
-      setRole(profile.role === 'coach' ? UserRole.COACH : UserRole.CLIENT);
-      setIsOnboarding(false);
-      setActiveTab('dashboard');
-      setIsSidebarOpen(window.innerWidth > 1024);
-      addNotification(
-        "Link Established", 
-        `Welcome back, ${profile.role === 'coach' ? 'Coach' : 'Athlete'}. Protocols active.`, 
-        "SUCCESS"
-      );
-    }
+  const handleLogin = (selectedRole: UserRole) => {
+    setRole(selectedRole);
+    setIsOnboarding(false);
+    setActiveTab('dashboard');
+    setIsSidebarOpen(window.innerWidth > 1024);
+    addNotification(
+      "Link Established", 
+      `Welcome back, ${selectedRole === UserRole.COACH ? 'Coach' : 'Athlete'}. Protocols active.`, 
+      "SUCCESS"
+    );
   };
 
   useEffect(() => {
@@ -142,6 +111,7 @@ const App: React.FC = () => {
           <OnboardingFlow 
             onComplete={() => {
               setIsOnboarding(false);
+              setRole(UserRole.CLIENT);
               addNotification("Onboarding Complete", "Welcome to Ripped City. Your blueprint is ready.", "SUCCESS");
             }} 
             onCancel={() => setIsOnboarding(false)}
@@ -191,17 +161,6 @@ const App: React.FC = () => {
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
-
-  if (loading) {
-    return (
-      <div className="flex h-screen bg-gray-950 text-gray-100 items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-sm font-black uppercase tracking-widest text-gray-500">Initializing Protocols...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden font-inter">
@@ -278,19 +237,14 @@ const App: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
-                {currentUser && (
-                  <span className="text-xs text-gray-500 hidden md:block">{currentUser.email}</span>
-                )}
-                <div 
-                  className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-red-600 cursor-pointer hover:bg-gray-700 transition-colors"
-                  onClick={async () => {
-                    const { logOut } = await import('./services/authService');
-                    await logOut();
-                  }}
-                >
-                  <i className="fas fa-right-from-bracket text-sm"></i>
-                </div>
+              <div 
+                className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-red-600 cursor-pointer hover:bg-gray-700 transition-colors"
+                onClick={() => {
+                  setRole(UserRole.PROSPECT);
+                  setIsOnboarding(false);
+                }}
+              >
+                <i className="fas fa-right-from-bracket text-sm"></i>
               </div>
             </div>
           </header>
