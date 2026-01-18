@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
+import { GoogleGenAI, Modality, LiveServerMessage, FunctionDeclaration, Type } from '@google/genai';
 import { SYSTEM_INSTRUCTION, protocolEvents } from '../geminiService';
 import { DashboardEvent } from '../types';
 
@@ -31,10 +31,27 @@ const CoachAIWidget: React.FC = () => {
         }
       } else if (event.type === 'VIEW_STATS') {
         setAiResponse(`Synchronizing ${event.subject}'s biological dataset. Integrity score: ${Math.floor(Math.random() * 10 + 85)}%.`);
+      } else if (event.type === 'SYSTEM_ALERT' && event.subject === 'CRM') {
+        setAiResponse(`Provisioned new subject: ${event.details.split(' - ')[0]}. Intelligence entry localized.`);
       }
     });
     return unsubscribe;
   }, []);
+
+  // Tool definition for adding clients
+  const addProspectTool: FunctionDeclaration = {
+    name: 'add_prospect',
+    description: 'Adds a new prospective client to the Ripped City database.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        name: { type: Type.STRING, description: 'Full name of the subject' },
+        email: { type: Type.STRING, description: 'Email address if provided' },
+        goal: { type: Type.STRING, description: 'Primary performance or aesthetic objective' }
+      },
+      required: ['name']
+    }
+  };
 
   const stopLive = () => {
     setIsLive(false);
@@ -45,7 +62,6 @@ const CoachAIWidget: React.FC = () => {
   const startLive = async () => {
     setIsConnecting(true);
     try {
-      // Use process.env.API_KEY as per standard GenAI SDK integration
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       audioContextRef.current = inputCtx;
@@ -69,7 +85,6 @@ const CoachAIWidget: React.FC = () => {
                 int16[i] = inputData[i] * 32768;
                 sum += Math.abs(inputData[i]);
               }
-              // Simple visualization data
               const avg = sum / inputData.length;
               setVisualizerData(prev => [...prev.slice(1), Math.max(2, avg * 100)]);
 
@@ -84,8 +99,35 @@ const CoachAIWidget: React.FC = () => {
             scriptProcessor.connect(inputCtx.destination);
           },
           onmessage: async (msg: LiveServerMessage) => {
+            // Handle standard transcription
             if (msg.serverContent?.outputTranscription) {
               setAiResponse(msg.serverContent.outputTranscription.text);
+            }
+
+            // Handle Function Calls (Adding Clients)
+            if (msg.toolCall) {
+              for (const fc of msg.toolCall.functionCalls) {
+                if (fc.name === 'add_prospect') {
+                  const { name, email, goal } = fc.args as any;
+                  
+                  // Emit event to global bus
+                  protocolEvents.emit({
+                    type: 'SYSTEM_ALERT',
+                    subject: 'CRM',
+                    details: `${name} - Goal: ${goal || 'Not specified'}. Provisioned via voice handshake.`,
+                    timestamp: new Date().toLocaleTimeString()
+                  });
+
+                  // Respond back to model
+                  sessionPromise.then(s => s.sendToolResponse({
+                    functionResponses: [{
+                      id: fc.id,
+                      name: fc.name,
+                      response: { result: "Subject successfully added to prospect database. Provisioning confirmed." }
+                    }]
+                  }));
+                }
+              }
             }
           },
           onclose: () => stopLive(),
@@ -97,7 +139,8 @@ const CoachAIWidget: React.FC = () => {
         },
         config: {
           responseModalities: [Modality.AUDIO],
-          systemInstruction: `${SYSTEM_INSTRUCTION} \nCoach Context: You are currently observing the Coach's dashboard activities. History of observed actions: ${JSON.stringify(history)}`
+          tools: [{ functionDeclarations: [addProspectTool] }],
+          systemInstruction: `${SYSTEM_INSTRUCTION} \nCoach Context: You are observing the Coach's dashboard. You have tool access to 'add_prospect'. Use it when the coach mentions a new name to track. History: ${JSON.stringify(history)}`
         }
       });
       sessionRef.current = await sessionPromise;
@@ -137,16 +180,15 @@ const CoachAIWidget: React.FC = () => {
                   <p className="text-[10px] text-gray-700 italic font-medium">Monitoring tactical maneuvers...</p>
                 ) : (
                   history.map((h, i) => (
-                    <div key={i} className="text-[10px] font-mono text-blue-400/80 border-l-2 border-blue-900/30 pl-3 py-1 group hover:border-blue-500 transition-all">
+                    <div key={i} className={`text-[10px] font-mono border-l-2 pl-3 py-1 group transition-all ${h.subject === 'CRM' ? 'text-green-400 border-green-900/50 hover:border-green-500' : 'text-blue-400/80 border-blue-900/30 hover:border-blue-500'}`}>
                       <span className="text-[8px] text-gray-600 block mb-0.5">[{h.timestamp}]</span>
-                      <span className="font-black text-blue-500">{h.type}:</span> {h.subject} - {h.details.substring(0, 40)}...
+                      <span className={`font-black ${h.subject === 'CRM' ? 'text-green-500' : 'text-blue-500'}`}>{h.type}:</span> {h.subject} - {h.details.substring(0, 60)}...
                     </div>
                   ))
                 )}
               </div>
             </div>
 
-            {/* Voice Visualizer Area */}
             <div className="flex items-end justify-center gap-1 h-12 bg-gray-950/50 rounded-2xl p-4 border border-gray-900">
                {visualizerData.map((v, i) => (
                  <div 
