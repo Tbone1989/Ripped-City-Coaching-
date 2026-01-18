@@ -17,20 +17,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
 
   const handlePortalAccess = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginEmail && !secretKey) return;
-
-    setIsLoggingIn(true);
     
+    // Explicit bypass check for Coach Master Key
+    if (showSecretField) {
+      if (!secretKey) return;
+      setIsLoggingIn(true);
+      setTimeout(() => {
+        const ARCHITECT_PASSKEY = "rc-alpha-99"; 
+        if (secretKey.toLowerCase() === ARCHITECT_PASSKEY) {
+          onLogin(UserRole.COACH);
+        } else {
+          // If they entered the wrong secret key, we treat them as a standard client auth attempt
+          onLogin(UserRole.CLIENT);
+        }
+        setIsLoggingIn(false);
+      }, 1200);
+      return;
+    }
+
+    // Standard Login
+    if (!loginEmail || !password) return;
+    setIsLoggingIn(true);
     setTimeout(() => {
-      // MASTER ACCESS KEY: rc-alpha-99
-      const ARCHITECT_PASSKEY = "rc-alpha-99"; 
-      
-      if (secretKey.toLowerCase() === ARCHITECT_PASSKEY) {
-        onLogin(UserRole.COACH);
-      } else {
-        // Standard user logic would normally verify against a database
-        onLogin(UserRole.CLIENT);
-      }
+      onLogin(UserRole.CLIENT);
       setIsLoggingIn(false);
     }, 1500);
   };
@@ -39,7 +48,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
   const handleSecretTrigger = () => {
     const newCount = clickCount + 1;
     setClickCount(newCount);
-    // Secretly click the copyright 5 times to reveal the Coach key field
+    // Secretly click the copyright 5 times to reveal the Architect bypass field
     if (newCount === 5) {
       setShowSecretField(true);
       document.getElementById('login')?.scrollIntoView({ behavior: 'smooth' });

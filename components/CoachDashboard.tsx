@@ -21,7 +21,7 @@ const CoachDashboard: React.FC = () => {
 
   useEffect(() => {
     getDailyCoachBriefing({ unitIntegrity: 94, deviations: 3, pendingChecks: 12 }).then(setBriefing);
-    const timer = setTimeout(() => setSystemInsight("Subject 02 adherence deviation detected. Caloric deficit may be too aggressive for current CNS state."), 2000);
+    const timer = setTimeout(() => setSystemInsight("Sara K. adherence deviation detected. Caloric deficit may be too aggressive for current CNS state."), 2000);
     return () => clearTimeout(timer);
   }, []);
 
