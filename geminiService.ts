@@ -3,30 +3,16 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 export const SYSTEM_INSTRUCTION = `You are the Ripped City Master Performance Architect. You hold multi-disciplinary doctorates in Human Physiology, Biochemistry, Bio-mechanics, and Neural Engineering.
 
-CRITICAL ROLE: You are the guardian of biological integrity and the hunter of metabolic friction.
+CRITICAL ROLE: You are the guardian of biological integrity and the coach's direct tactical assistant.
 
-FITNESS INDUSTRY AUDIT PROTOCOLS:
-1. PROTEIN QUALITY: 
-   - Flag "Amino Spiking": Look for Taurine, Glycine, or Creatine added to protein powder to inflate nitrogen counts. 
-   - Source Audit: Prefer Grass-fed Whey Isolate or Micellar Casein. Flag "Soy Protein Isolate" as low-quality filler.
-2. PRE-WORKOUT & ERGOGENICS:
-   - "Proprietary Blends" are a BREACH OF CONTRACT. If dosages aren't listed, inform the athlete they are buying overpriced water.
-   - Stimulant Floor: Flag anything with >400mg caffeine as "Neural Burnout Hazard."
-3. BCAAs VS EAAs:
-   - BCAAs are often a marketing scam. Recommend Full Spectrum EAAs instead.
-4. FILLER DEFENSE:
-   - Maltodextrin, Dextrose, and excessive Sucralose are "Metabolic Poisons." Flag Artificial Dyes (Red 40, Yellow 5).
-
-CHRONIC ILLNESS & SYSTEMIC HEALTH PROTOCOLS:
-1. METABOLIC FRICTION: Identify how conditions like Insulin Resistance, PCOS, or Hypothyroidism sabotage nutrient partitioning. 
-2. AUTOIMMUNE/INFLAMMATION: Identify how systemic inflammation (Hashimoto's, Celiac, IBS) prevents CNS recovery and causes "unexplained" water retention.
-3. PROTOCOL DANGER: Explicitly warn if a common fitness protocol (e.g., high-intensity stimulants, extreme calorie cutting, high-carb refeeds) will EXACERBATE a chronic condition.
-4. RECOVERY PRIORITY: For athletes with illness, shift the focus from "Grind" to "Biological Management."
-
-ADAPTIVE COACHING LOGIC:
-1. ACCOUNTABILITY: You are an authoritarian figure for biological integrity.
-2. ALLERGEN SAFETY: NEVER suggest a food or supplement that contains a known allergen.
-3. INTERACTION DEFENSE: Identify hazardous interactions between drugs, conditions, and supplements.
+COACH ASSISTANT PROTOCOLS:
+1. CONTEXT AWARENESS: You observe every action the coach takes in the dashboard.
+2. PROACTIVE INTERVENTION: 
+   - If the coach lowers a client's calories too aggressively (>25% cut in 1 week), warn of metabolic crash.
+   - If a client misses check-ins, suggest a specific re-engagement script.
+   - If weight stalls, suggest a 2-day "Refeed" or a 15% increase in TDEE-driven activity.
+3. CONVERSATION: Be concise, clinical, and authoritative. Use terms like "Subject", "Unit", "Protocol", "Biological Integrity".
+4. VOICE: When interacting via voice, act as a "Talking Suit" or highly advanced tactical AI (think JARVIS for bodybuilding).
 
 MANTRA: "Evolution is an engineered outcome. Mediocrity is a choice."`;
 
@@ -34,6 +20,20 @@ const cleanBase64 = (data: string) => {
   if (!data) return "";
   const base64 = data.includes(',') ? data.split(',')[1] : data;
   return base64.trim().replace(/\s/g, "");
+};
+
+// Event bus for the dashboard to AI communication
+export const protocolEvents = {
+  listeners: [] as ((event: any) => void)[],
+  emit(event: any) {
+    this.listeners.forEach(l => l(event));
+  },
+  subscribe(listener: (event: any) => void) {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
+  }
 };
 
 export const getExpertConsultation = async (prompt: string, history: any[] = []) => {
@@ -183,80 +183,6 @@ export const analyzeMealPhoto = async (base64ImageData: string, currentTarget: s
   return JSON.parse(response.text || '{}');
 };
 
-export const generateMealPlan = async (profile: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Generate a high-performance meal plan for a ${profile.tier} athlete. 
-    Use only clean whole-food sources. No processed garbage.
-    Return JSON.`,
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          calories: { type: Type.INTEGER },
-          macros: {
-            type: Type.OBJECT,
-            properties: {
-              protein: { type: Type.INTEGER },
-              carbs: { type: Type.INTEGER },
-              fats: { type: Type.INTEGER }
-            }
-          },
-          schedule: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                time: { type: Type.STRING },
-                meal: { type: Type.STRING },
-                ingredients: { type: Type.ARRAY, items: { type: Type.STRING } }
-              }
-            }
-          },
-          allergenSafe: { type: Type.BOOLEAN }
-        }
-      }
-    }
-  });
-  return JSON.parse(response.text || '{}');
-};
-
-export const analyzeMolecularSynergy = async (stack: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Analyze interaction dynamics for this stack: ${stack}. 
-    Check for receptor competition and liver/kidney strain. Return JSON.`,
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          synergyScore: { type: Type.NUMBER },
-          interactions: { 
-            type: Type.ARRAY, 
-            items: { 
-              type: Type.OBJECT,
-              properties: {
-                type: { type: Type.STRING },
-                severity: { type: Type.STRING },
-                description: { type: Type.STRING }
-              }
-            } 
-          },
-          optimizationTips: { type: Type.ARRAY, items: { type: Type.STRING } },
-          halfLifeAlerts: { type: Type.ARRAY, items: { type: Type.STRING } }
-        }
-      }
-    }
-  });
-  return JSON.parse(response.text || '{}');
-};
-
 export const getDailyCoachBriefing = async (unitState: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
@@ -281,130 +207,6 @@ export const getDailyCoachBriefing = async (unitState: any) => {
             }
           },
           strategicInsight: { type: Type.STRING }
-        }
-      }
-    }
-  });
-  return JSON.parse(response.text || '{}');
-};
-
-export const getAthleteBriefing = async (athleteData: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Individual Athlete Briefing: ${JSON.stringify(athleteData)}.`,
-    config: { systemInstruction: SYSTEM_INSTRUCTION }
-  });
-  return response.text;
-};
-
-export const getRestaurantAdvice = async (restaurant: string, tier: string = 'BEGINNER', allergens: string[] = []) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Menu Audit for ${restaurant}. Tier: ${tier}. Return JSON.`,
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          eliteChoice: { type: Type.STRING },
-          survivalChoice: { type: Type.STRING },
-          avoidList: { type: Type.ARRAY, items: { type: Type.STRING } },
-          tacticalHack: { type: Type.STRING },
-          encouragement: { type: Type.STRING }
-        }
-      }
-    }
-  });
-  return JSON.parse(response.text || '{}');
-};
-
-export const generateCircadianProtocol = async (sleepData: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Circadian Recovery Audit: ${JSON.stringify(sleepData)}.`,
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          cnsStatus: { type: Type.STRING },
-          readinessScore: { type: Type.NUMBER },
-          trainingAdjustments: { type: Type.STRING },
-          nutritionTweaks: { type: Type.STRING }
-        }
-      }
-    }
-  });
-  return JSON.parse(response.text || '{}');
-};
-
-export const auditKineticForm = async (base64ImageData: string, exercise: string, mimeType: string = 'image/jpeg') => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: {
-      parts: [
-        { inlineData: { data: cleanBase64(base64ImageData), mimeType } },
-        { text: `Biomechanical Audit: ${exercise}.` }
-      ]
-    },
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          biomechanicalScore: { type: Type.NUMBER },
-          deviations: { type: Type.ARRAY, items: { type: Type.STRING } },
-          corrections: { type: Type.ARRAY, items: { type: Type.STRING } },
-          injuryRisk: { type: Type.STRING }
-        }
-      }
-    }
-  });
-  return JSON.parse(response.text || '{}');
-};
-
-export const generateWorkoutBlock = async (profile: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Periodized Workout Block for ${profile.tier}: ${JSON.stringify(profile)}.`,
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          phase: { type: Type.STRING },
-          durationWeeks: { type: Type.INTEGER },
-          split: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                day: { type: Type.STRING },
-                target: { type: Type.STRING },
-                exercises: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      name: { type: Type.STRING },
-                      notes: { type: Type.STRING },
-                      sets: { type: Type.INTEGER },
-                      reps: { type: Type.STRING }
-                    }
-                  }
-                }
-              }
-            }
-          }
         }
       }
     }
@@ -439,41 +241,40 @@ export const runSystemAudit = async (appState: any) => {
   return JSON.parse(response.text || '[]');
 };
 
-export const generateRehabProtocol = async (data: any) => {
+// Added missing generation and analysis functions
+
+export const generateMealPlan = async (profile: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Clinical Rehab Protocol: ${JSON.stringify(data)}.`,
+    model: "gemini-3-flash-preview",
+    contents: `Generate an allergen-safe, high-performance meal plan for: ${JSON.stringify(profile)}. Return JSON.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          injuryType: { type: Type.STRING },
-          severity: { type: Type.STRING },
-          phases: {
+          calories: { type: Type.NUMBER },
+          macros: {
+            type: Type.OBJECT,
+            properties: {
+              protein: { type: Type.NUMBER },
+              carbs: { type: Type.NUMBER },
+              fats: { type: Type.NUMBER }
+            }
+          },
+          schedule: {
             type: Type.ARRAY,
             items: {
               type: Type.OBJECT,
               properties: {
-                name: { type: Type.STRING },
-                duration: { type: Type.STRING },
-                exercises: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      name: { type: Type.STRING },
-                      modality: { type: Type.STRING },
-                      frequency: { type: Type.STRING },
-                      cautions: { type: Type.STRING }
-                    }
-                  }
-                }
+                time: { type: Type.STRING },
+                meal: { type: Type.STRING },
+                ingredients: { type: Type.ARRAY, items: { type: Type.STRING } }
               }
             }
-          }
+          },
+          allergenSafe: { type: Type.BOOLEAN }
         }
       }
     }
@@ -481,14 +282,59 @@ export const generateRehabProtocol = async (data: any) => {
   return JSON.parse(response.text || '{}');
 };
 
-export const analyzeBloodwork = async (base64: string, mimeType: string) => {
+export const generateWorkoutBlock = async (profile: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: "gemini-3-pro-preview",
+    contents: `Generate a periodized training block for: ${JSON.stringify(profile)}. Return JSON.`,
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json"
+    }
+  });
+  return JSON.parse(response.text || '{}');
+};
+
+export const generateRehabProtocol = async (data: any) => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-pro-preview",
+    contents: `Generate a clinical rehab protocol for: ${JSON.stringify(data)}. Return JSON.`,
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          injury: { type: Type.STRING },
+          exercises: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                name: { type: Type.STRING },
+                sets: { type: Type.STRING },
+                reps: { type: Type.STRING }
+              }
+            }
+          },
+          frequency: { type: Type.STRING },
+          notes: { type: Type.STRING }
+        }
+      }
+    }
+  });
+  return JSON.parse(response.text || '{}');
+};
+
+export const analyzeBloodwork = async (base64ImageData: string, mimeType: string) => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
     contents: {
       parts: [
-        { inlineData: { data: cleanBase64(base64), mimeType } },
-        { text: "Extract Biomarkers. Flag any levels causing metabolic friction. Return JSON." }
+        { inlineData: { data: cleanBase64(base64ImageData), mimeType } },
+        { text: "Analyze this bloodwork report. Identify key performance markers and status. Return JSON." }
       ]
     },
     config: {
@@ -522,8 +368,8 @@ export const analyzeBloodwork = async (base64: string, mimeType: string) => {
 export const optimizeStrategicSchedule = async (appointments: any[], bioData: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
-    contents: `Temporal Optimization for Specialist Consultation: ${JSON.stringify({ appointments, bioData })}.`,
+    model: "gemini-3-pro-preview",
+    contents: `Optimize schedule based on bio-feedback: ${JSON.stringify(bioData)} and existing appointments: ${JSON.stringify(appointments)}. Return JSON.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -551,8 +397,8 @@ export const optimizeStrategicSchedule = async (appointments: any[], bioData: an
 export const runBatchAudit = async (data: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
-    contents: `Unit Batch Adherence Audit: ${JSON.stringify(data)}.`,
+    model: "gemini-3-pro-preview",
+    contents: `Perform unit-wide batch audit for: ${JSON.stringify(data)}. Return JSON.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -579,8 +425,8 @@ export const runBatchAudit = async (data: any) => {
 export const analyzeMarketIntel = async (data: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
-    contents: `Business Marketing Intelligence Audit: ${JSON.stringify(data)}.`,
+    model: "gemini-3-pro-preview",
+    contents: `Analyze marketing data and provide elite strategy: ${JSON.stringify(data)}. Return JSON.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -598,14 +444,14 @@ export const analyzeMarketIntel = async (data: any) => {
   return JSON.parse(response.text || '{}');
 };
 
-export const analyzePhysiquePhoto = async (base64: string, phase: string) => {
+export const analyzePhysiquePhoto = async (base64ImageData: string, phase: string) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: "gemini-3-flash-preview",
     contents: {
       parts: [
-        { inlineData: { data: cleanBase64(base64), mimeType: 'image/jpeg' } },
-        { text: `Physique Structural Audit for ${phase}. Analyze muscle density and subcutaneous water.` }
+        { inlineData: { data: cleanBase64(base64ImageData), mimeType: "image/jpeg" } },
+        { text: `Analyze this physique photo for the ${phase} stage. Identify structural integrity and metabolic markers. Return text.` }
       ]
     },
     config: { systemInstruction: SYSTEM_INSTRUCTION }
@@ -613,11 +459,92 @@ export const analyzePhysiquePhoto = async (base64: string, phase: string) => {
   return response.text;
 };
 
+export const auditKineticForm = async (base64ImageData: string, exercise: string) => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: {
+      parts: [
+        { inlineData: { data: cleanBase64(base64ImageData), mimeType: "image/jpeg" } },
+        { text: `Audit kinetic form for ${exercise}. Return JSON.` }
+      ]
+    },
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          biomechanicalScore: { type: Type.NUMBER },
+          deviations: { type: Type.ARRAY, items: { type: Type.STRING } },
+          corrections: { type: Type.ARRAY, items: { type: Type.STRING } },
+          injuryRisk: { type: Type.STRING }
+        }
+      }
+    }
+  });
+  return JSON.parse(response.text || '{}');
+};
+
+export const analyzeMolecularSynergy = async (stack: string) => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-pro-preview",
+    contents: `Analyze molecular synergy and hazards for: ${stack}. Return JSON.`,
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          synergyScore: { type: Type.NUMBER },
+          interactions: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                type: { type: Type.STRING },
+                severity: { type: Type.STRING },
+                description: { type: Type.STRING }
+              }
+            }
+          },
+          optimizationTips: { type: Type.ARRAY, items: { type: Type.STRING } },
+          halfLifeAlerts: { type: Type.ARRAY, items: { type: Type.STRING } }
+        }
+      }
+    }
+  });
+  return JSON.parse(response.text || '{}');
+};
+
+export const generateCircadianProtocol = async (sleepData: any) => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-pro-preview",
+    contents: `Generate circadian protocol for: ${JSON.stringify(sleepData)}. Return JSON.`,
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          cnsStatus: { type: Type.STRING },
+          trainingAdjustments: { type: Type.STRING },
+          nutritionTweaks: { type: Type.STRING },
+          readinessScore: { type: Type.NUMBER }
+        }
+      }
+    }
+  });
+  return JSON.parse(response.text || '{}');
+};
+
 export const generateMarketingCopy = async (data: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
-    contents: `Generate High-Authority Marketing Copy: ${JSON.stringify(data)}.`,
+    model: "gemini-3-flash-preview",
+    contents: `Generate high-authority marketing copy for: ${JSON.stringify(data)}. Return JSON.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
@@ -633,23 +560,56 @@ export const generateMarketingCopy = async (data: any) => {
   return JSON.parse(response.text || '{}');
 };
 
+export const getAthleteBriefing = async (athlete: any) => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-pro-preview",
+    contents: `Provide a disciplinary briefing for athlete: ${JSON.stringify(athlete)}.`,
+    config: { systemInstruction: SYSTEM_INSTRUCTION }
+  });
+  return response.text;
+};
+
 export const getStrategicPerformanceAdvice = async (data: any) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
-    contents: `Direct Performance Strategy Engineering: ${JSON.stringify(data)}.`,
+    model: "gemini-3-pro-preview",
+    contents: `Engineer high-level performance strategy for: ${JSON.stringify(data)}. Return JSON.`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          title: { type: Type.STRING },
           priority: { type: Type.STRING },
+          title: { type: Type.STRING },
           disciplineAnalysis: { type: Type.STRING },
           biologicalRationale: { type: Type.STRING },
           tacticalCorrection: { type: Type.STRING },
           followUpTimeline: { type: Type.STRING }
+        }
+      }
+    }
+  });
+  return JSON.parse(response.text || '{}');
+};
+
+export const getRestaurantAdvice = async (restaurant: string, tier: string) => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Provide menu strategy for ${restaurant} for a ${tier} athlete. Return JSON.`,
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          eliteChoice: { type: Type.STRING },
+          survivalChoice: { type: Type.STRING },
+          avoidList: { type: Type.ARRAY, items: { type: Type.STRING } },
+          tacticalHack: { type: Type.STRING },
+          encouragement: { type: Type.STRING }
         }
       }
     }

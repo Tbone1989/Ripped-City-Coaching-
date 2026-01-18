@@ -29,6 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role, isOpen
     { id: 'intelligence', label: 'Business Intel', icon: 'fa-chart-line', role: UserRole.COACH },
     { id: 'terminal', label: 'Payment Terminal', icon: 'fa-credit-card', role: UserRole.COACH },
     { id: 'auditor', label: 'System Audit', icon: 'fa-shield-halved', role: UserRole.COACH },
+    { id: 'shop', label: 'Shop Gear', icon: 'fa-shirt', role: UserRole.COACH },
   ];
 
   const clientItems: MenuItem[] = [
@@ -40,6 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role, isOpen
     { id: 'scanner', label: 'Meal Scan', icon: 'fa-utensils', role: UserRole.CLIENT },
     { id: 'fuel-audit', label: 'Label Scan', icon: 'fa-barcode', role: UserRole.CLIENT },
     { id: 'voice', label: 'Coach Connect', icon: 'fa-headset', role: UserRole.CLIENT },
+    { id: 'shop', label: 'Shop Gear', icon: 'fa-shirt', role: UserRole.CLIENT },
   ];
 
   const items = role === UserRole.COACH ? coachItems : clientItems;
@@ -79,16 +81,21 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role, isOpen
               <button
                 key={item.id}
                 onClick={() => {
+                  if (item.id === 'shop') {
+                    window.open('https://www.rippedcityinc.com', '_blank');
+                    return;
+                  }
                   setActiveTab(item.id);
                   if (window.innerWidth < 1024) setIsOpen(false);
                 }}
                 className={`
                   w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all group
                   ${activeTab === item.id ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'}
+                  ${item.id === 'shop' ? 'border border-dashed border-red-600/30 mt-4' : ''}
                 `}
               >
-                <i className={`fas ${item.icon} w-5 shrink-0 text-sm`}></i>
-                {isOpen && <span className="text-xs font-bold uppercase tracking-wider whitespace-nowrap">{item.label}</span>}
+                <i className={`fas ${item.icon} w-5 shrink-0 text-sm ${item.id === 'shop' ? 'text-red-500' : ''}`}></i>
+                {isOpen && <span className={`text-xs font-bold uppercase tracking-wider whitespace-nowrap ${item.id === 'shop' ? 'text-red-500' : ''}`}>{item.label}</span>}
               </button>
             ))}
           </div>

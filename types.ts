@@ -84,7 +84,7 @@ export interface BodyScanMetrics {
   skeletalMuscleMass: number;
   bodyFatPercent: number;
   bmr: number;
-  ecwRatio: number; // Extracellular Water Ratio (Critical for Pros)
+  ecwRatio: number; 
   date: string;
   analysis?: string;
 }
@@ -119,6 +119,20 @@ export interface TeamAthlete {
   criticalMetric: string;
   performanceMetrics?: Record<string, string | number>;
   allergens?: string[];
+  currentProtocol?: {
+    kcal: number;
+    p: number;
+    c: number;
+    f: number;
+    supps: string[];
+  };
+}
+
+export interface DashboardEvent {
+  type: 'UPDATE_MACROS' | 'UPDATE_WORKOUT' | 'VIEW_STATS' | 'ADD_NOTE' | 'SYSTEM_ALERT';
+  subject: string;
+  details: string;
+  timestamp: string;
 }
 
 export interface Anomaly {
@@ -214,53 +228,6 @@ export interface ProgressPhoto {
   systemAnalysis?: string;
 }
 
-export interface RehabProtocol {
-  injuryType: string;
-  severity: string;
-  phases: {
-    name: string;
-    duration: string;
-    exercises: {
-      name: string;
-      modality: string;
-      frequency: string;
-      cautions: string;
-    }[];
-  }[];
-}
-
-export interface MarketInsight {
-  competitorAnalysis: string;
-  pricingStrategy: string;
-  suggestedPackage: string;
-  salesScriptHook: string;
-}
-
-export interface FormAuditResult {
-  biomechanicalScore: number;
-  deviations: string[];
-  corrections: string[];
-  injuryRisk: 'LOW' | 'MODERATE' | 'HIGH';
-}
-
-export interface MolecularSynergyReport {
-  synergyScore: number;
-  interactions: {
-    type: 'FOOD_DRUG' | 'SUPPLEMENT_DRUG' | 'VITAMIN_MINERAL' | 'HERBAL';
-    severity: 'LOW' | 'MODERATE' | 'SEVERE';
-    description: string;
-  }[];
-  optimizationTips: string[];
-  halfLifeAlerts: string[];
-}
-
-export interface CycleData {
-  lastPeriodDate: string;
-  cycleLength: number;
-  phase: 'MENSTRUAL' | 'FOLLICULAR' | 'OVULATORY' | 'LUTEAL';
-  symptoms: string[];
-}
-
 export interface LandingPageContent {
   heroTitle: string;
   heroSubtitle: string;
@@ -279,4 +246,40 @@ export interface LandingPageContent {
     text: string;
     avatar: string;
   }[];
+}
+
+// Added missing types for various UI modules
+export interface RehabProtocol {
+  injury: string;
+  exercises: { name: string; sets: string; reps: string }[];
+  frequency: string;
+  notes: string;
+}
+
+export interface MarketInsight {
+  competitorAnalysis: string;
+  pricingStrategy: string;
+  suggestedPackage: string;
+  salesScriptHook: string;
+}
+
+export interface CycleData {
+  lastPeriodDate: string;
+  cycleLength: number;
+  phase: 'MENSTRUAL' | 'FOLLICULAR' | 'OVULATORY' | 'LUTEAL';
+  symptoms: string[];
+}
+
+export interface FormAuditResult {
+  biomechanicalScore: number;
+  deviations: string[];
+  corrections: string[];
+  injuryRisk: 'LOW' | 'MODERATE' | 'HIGH';
+}
+
+export interface MolecularSynergyReport {
+  synergyScore: number;
+  interactions: { type: string; severity: 'LOW' | 'MODERATE' | 'SEVERE'; description: string }[];
+  optimizationTips: string[];
+  halfLifeAlerts: string[];
 }

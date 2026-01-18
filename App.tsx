@@ -1,12 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
 import { UserRole, Notification, ExperienceTier, LandingPageContent } from './types';
-import { onAuthChange, getUserProfile } from './services/authService';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import IntegrityAuditor from './components/AIAuditor';
-import PrecisionGenerator from './components/PrecisionGenerator';
-import HealthSuite from './components/HealthSuite';
 import RemoteConsultation from './components/VoiceAssistant';
 import LandingPage from './components/LandingPage';
 import InvoicesView from './components/InvoicesView';
@@ -18,27 +15,22 @@ import BusinessIntel from './components/BusinessIntel';
 import HormonalSync from './components/HormonalSync';
 import ProtocolExpert from './components/ZephyrExpert';
 import ProgressPhotos from './components/ProgressPhotos';
-import KineticFormAudit from './components/KineticFormAudit';
-import MolecularSynergy from './components/MolecularSynergy';
-import CircadianOptimization from './components/CircadianOptimization';
-import ProspectCRM from './components/ProspectCRM';
-import SocialMarketing from './components/SocialMarketing';
 import MealScanner from './components/MealScanner';
 import ClientRoster from './components/ClientRoster';
 import PerformanceAdvice from './components/PerformanceAdvice';
-import HabitEvolution from './components/HabitEvolution';
 import ProductScanner from './components/ProductScanner';
-import DiningGuide from './components/DiningGuide';
-import BodyScannerHub from './components/BodyScannerHub';
 import CoachCMS from './components/CoachCMS';
 import CoachPaymentTerminal from './components/CoachPaymentTerminal';
 import WorkoutInterface from './components/WorkoutInterface';
-import TrainingRoadmap from './components/TrainingRoadmap';
-import ClinicalArchive from './components/ClinicalArchive';
 import GroceryList from './components/GroceryList';
+import CoachAIWidget from './components/CoachAIWidget';
+import HabitEvolution from './components/HabitEvolution';
+import PrecisionGenerator from './components/PrecisionGenerator';
+import HealthSuite from './components/HealthSuite';
+// Added missing import for ProspectCRM
+import ProspectCRM from './components/ProspectCRM';
 
 const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [role, setRole] = useState<UserRole>(UserRole.PROSPECT);
   const [tier, setTier] = useState<ExperienceTier>('BEGINNER'); 
   const [isOnboarding, setIsOnboarding] = useState(false);
@@ -47,7 +39,6 @@ const App: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [activeToast, setActiveToast] = useState<Notification | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const [landingContent, setLandingContent] = useState<LandingPageContent>({
     heroTitle: "FORGE YOUR\nLEGACY",
@@ -56,7 +47,7 @@ const App: React.FC = () => {
     beforeImage: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070",
     afterImage: "https://images.unsplash.com/photo-1583454110551-21f2fa2adfcd?q=80&w=2070",
     methodology: [
-      { step: '1', title: 'ANALYZE', text: 'Deep dive intake: bloodwork, lifestyle, and metabolic baseline assessment.', icon: 'fa-clipboard-list' },
+      { step: '1', title: 'ANALYZE', text: 'Deep dive intake Assessment: bloodwork, lifestyle, and metabolic baseline assessment.', icon: 'fa-clipboard-list' },
       { step: '2', title: 'BLUEPRINT', text: 'Custom roadmap: Precision nutrition, periodized training, and supplement protocols.', icon: 'fa-hourglass-half' },
       { step: '3', title: 'EVOLVE', text: 'Execute and adjust: Bi-weekly data-driven audits ensure constant progression.', icon: 'fa-trophy' }
     ],
@@ -66,31 +57,6 @@ const App: React.FC = () => {
       { name: "Mike R.", role: "Classic Physique", text: "Ripped City isn't a program; it's a high-fidelity biological framework.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike" }
     ]
   });
-
-  // Listen to Firebase auth state changes
-  useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      setCurrentUser(user);
-      
-      if (user) {
-        // User is signed in, get their profile
-        const profile = await getUserProfile(user.uid);
-        if (profile) {
-          setRole(profile.role === 'coach' ? UserRole.COACH : UserRole.CLIENT);
-          setActiveTab('dashboard');
-          setIsSidebarOpen(window.innerWidth > 1024);
-        }
-      } else {
-        // User is signed out
-        setRole(UserRole.PROSPECT);
-        setActiveTab('landing');
-      }
-      
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const addNotification = (title: string, message: string, type: any) => {
     const newNotif: Notification = {
@@ -105,33 +71,23 @@ const App: React.FC = () => {
     setActiveToast(newNotif);
   };
 
-  const handleLogin = async (user: User) => {
-    const profile = await getUserProfile(user.uid);
-    if (profile) {
-      setRole(profile.role === 'coach' ? UserRole.COACH : UserRole.CLIENT);
-      setIsOnboarding(false);
-      setActiveTab('dashboard');
-      setIsSidebarOpen(window.innerWidth > 1024);
-      addNotification(
-        "Link Established", 
-        `Welcome back, ${profile.role === 'coach' ? 'Coach' : 'Athlete'}. Protocols active.`, 
-        "SUCCESS"
-      );
-    }
+  const handleLogin = (selectedRole: UserRole) => {
+    setRole(selectedRole);
+    setIsOnboarding(false);
+    setActiveTab('dashboard');
+    setIsSidebarOpen(window.innerWidth > 1024);
+    addNotification(
+      "Link Established", 
+      `Welcome back, ${selectedRole === UserRole.COACH ? 'Coach' : 'Athlete'}. Protocols active.`, 
+      "SUCCESS"
+    );
   };
-
-  useEffect(() => {
-    if (role === UserRole.PROSPECT) {
-      setActiveTab('landing');
-      return;
-    }
-  }, [role]);
 
   const appState = {
     clients: 12,
     missedCheckins: 2,
     bloodworkPending: 4,
-    systemMemory: '256MB',
+    systemMemory: '512MB',
     lastSync: new Date().toISOString()
   };
 
@@ -142,6 +98,7 @@ const App: React.FC = () => {
           <OnboardingFlow 
             onComplete={() => {
               setIsOnboarding(false);
+              setRole(UserRole.CLIENT);
               addNotification("Onboarding Complete", "Welcome to Ripped City. Your blueprint is ready.", "SUCCESS");
             }} 
             onCancel={() => setIsOnboarding(false)}
@@ -169,7 +126,19 @@ const App: React.FC = () => {
       case 'voice':
         return <RemoteConsultation />;
       
-      // Coach Only Tabs
+      // Specialist & Evolution Modules
+      case 'timeline':
+        return <HabitEvolution />;
+      case 'strategy':
+        return <PerformanceAdvice />;
+      case 'generator':
+        return <PrecisionGenerator />;
+      case 'health':
+        return <HealthSuite />;
+      case 'female-suite':
+        return <HormonalSync />;
+
+      // Coach Specific Routes
       case 'roster':
         return <ClientRoster />;
       case 'units':
@@ -191,17 +160,6 @@ const App: React.FC = () => {
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
-
-  if (loading) {
-    return (
-      <div className="flex h-screen bg-gray-950 text-gray-100 items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-sm font-black uppercase tracking-widest text-gray-500">Initializing Protocols...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden font-inter">
@@ -278,24 +236,19 @@ const App: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
-                {currentUser && (
-                  <span className="text-xs text-gray-500 hidden md:block">{currentUser.email}</span>
-                )}
-                <div 
-                  className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-red-600 cursor-pointer hover:bg-gray-700 transition-colors"
-                  onClick={async () => {
-                    const { logOut } = await import('./services/authService');
-                    await logOut();
-                  }}
-                >
-                  <i className="fas fa-right-from-bracket text-sm"></i>
-                </div>
+              <div 
+                className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-red-600 cursor-pointer hover:bg-gray-700 transition-colors"
+                onClick={() => {
+                  setRole(UserRole.PROSPECT);
+                  setIsOnboarding(false);
+                }}
+              >
+                <i className="fas fa-right-from-bracket text-sm"></i>
               </div>
             </div>
           </header>
         )}
-        <div className="flex-1 overflow-y-auto p-0 md:p-0">
+        <div className="flex-1 overflow-y-auto">
           {renderContent()}
         </div>
         {activeToast && (
@@ -304,6 +257,8 @@ const App: React.FC = () => {
             onClose={() => setActiveToast(null)} 
           />
         )}
+
+        {role === UserRole.COACH && <CoachAIWidget />}
       </main>
     </div>
   );

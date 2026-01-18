@@ -1,11 +1,10 @@
+
 import React, { useState } from 'react';
-import { User } from 'firebase/auth';
-import { LandingPageContent } from '../types';
-import { signInWithEmail, signInWithGoogle, signUpWithEmail } from '../services/authService';
+import { UserRole, LandingPageContent } from '../types';
 
 interface LandingPageProps {
   onJoin: () => void;
-  onLogin: (user: User) => void;
+  onLogin: (role: UserRole) => void;
   content: LandingPageContent;
 }
 
@@ -13,53 +12,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [error, setError] = useState('');
   const [showSecretField, setShowSecretField] = useState(false);
   const [secretKey, setSecretKey] = useState('');
 
-  const handlePortalAccess = async (e: React.FormEvent) => {
+  const handlePortalAccess = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginEmail || !password) return;
+    if (!loginEmail && !secretKey) return;
 
     setIsLoggingIn(true);
-    setError('');
     
-    try {
-      // Check if user is trying to sign up as coach with secret key
-      const ARCHITECT_PASSKEY = "rc-alpha-99";
-      const isCoachSignup = secretKey.toLowerCase() === ARCHITECT_PASSKEY;
+    setTimeout(() => {
+      // MASTER ACCESS KEY: rc-alpha-99
+      const ARCHITECT_PASSKEY = "rc-alpha-99"; 
       
-      if (isSignUp) {
-        // Sign up new user
-        const user = await signUpWithEmail(loginEmail, password, isCoachSignup ? 'coach' : 'client');
-        onLogin(user);
+      if (secretKey.toLowerCase() === ARCHITECT_PASSKEY) {
+        onLogin(UserRole.COACH);
       } else {
-        // Sign in existing user
-        const user = await signInWithEmail(loginEmail, password);
-        onLogin(user);
+        // Standard user logic would normally verify against a database
+        onLogin(UserRole.CLIENT);
       }
-    } catch (err: any) {
-      console.error('Auth error:', err);
-      setError(err.message || 'Authentication failed. Please try again.');
-    } finally {
       setIsLoggingIn(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsLoggingIn(true);
-    setError('');
-    
-    try {
-      const user = await signInWithGoogle();
-      onLogin(user);
-    } catch (err: any) {
-      console.error('Google sign-in error:', err);
-      setError(err.message || 'Google sign-in failed. Please try again.');
-    } finally {
-      setIsLoggingIn(false);
-    }
+    }, 1500);
   };
 
   const [clickCount, setClickCount] = useState(0);
@@ -81,6 +54,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
         <h1 className="text-2xl font-black italic tracking-tighter flex items-center gap-1">
           RIPPED<span className="text-red-600">CITY</span>
         </h1>
+      </div>
+
+      {/* External Store Link */}
+      <div className="absolute top-8 right-8 z-50 flex gap-4">
+        <a 
+          href="https://www.rippedcityinc.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="hidden md:flex px-6 py-2 glass border border-gray-800 rounded-full text-[10px] font-black uppercase tracking-widest hover:border-red-600 hover:text-red-500 transition-all items-center gap-2"
+        >
+          <i className="fas fa-shirt"></i> Shop Gear
+        </a>
       </div>
 
       {/* Hero Section */}
@@ -117,6 +102,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
             >
               How It Works
             </button>
+            <a 
+              href="https://www.rippedcityinc.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="md:hidden w-full max-w-sm py-4 border border-dashed border-red-600/50 text-red-500 font-black uppercase italic tracking-widest text-xs rounded-xl flex items-center justify-center gap-2"
+            >
+              <i className="fas fa-shirt"></i> Shop Official Gear
+            </a>
           </div>
         </div>
       </section>
@@ -125,175 +118,132 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
       <section id="methodology" className="py-32 px-6 bg-[#030712]">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-4">
-            THE RIPPED CITY <span className="text-red-600">PROTOCOL</span>
+            THE RIPPED CITY <span className="text-red-600">METHODOLOGY</span>
           </h2>
-          <p className="text-gray-500 text-sm mb-16 uppercase tracking-widest font-bold">
-            Precision-Driven Evolution in Three Phases
+          <p className="text-gray-500 mb-20 max-w-2xl mx-auto uppercase font-bold tracking-widest text-[10px]">
+            Engineered Evolution for Superior Biology
           </p>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {content.methodology.map((step, idx) => (
-              <div key={idx} className="glass border border-gray-800 rounded-2xl p-8 hover:border-red-900/50 transition-all group">
-                <div className="w-16 h-16 rounded-full bg-red-600/10 border border-red-600/30 flex items-center justify-center mx-auto mb-6 text-3xl text-red-600 font-black italic group-hover:scale-110 transition-transform">
-                  {step.step}
+
+          <div className="grid md:grid-cols-3 gap-12">
+            {content.methodology.map((m, idx) => (
+              <div key={idx} className="flex flex-col items-center space-y-6 animate-in fade-in duration-700">
+                <div className={`w-20 h-20 rounded-3xl border-2 flex items-center justify-center text-2xl rotate-3 ${idx === 1 ? 'border-red-600 text-red-600 bg-red-600/5' : 'border-gray-700 text-gray-400'}`}>
+                  <i className={`fas ${m.icon}`}></i>
                 </div>
-                <h3 className="text-xl font-black italic uppercase tracking-tighter mb-4 text-red-500">
-                  {step.title}
-                </h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  {step.text}
-                </p>
+                <div>
+                  <h3 className="text-xl font-black italic uppercase mb-2">{m.step}. {m.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed font-medium">{m.text}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Transformation Section */}
-      <section className="py-32 px-6 bg-[#030712]">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-black italic uppercase tracking-tighter text-center mb-4">
-            REAL <span className="text-red-600">TRANSFORMATIONS</span>
+      {/* Personal Story Section */}
+      <section className="py-32 px-6">
+        <div className="max-w-3xl mx-auto space-y-10 text-center md:text-left">
+          <h2 className="text-5xl font-black italic uppercase leading-none tracking-tighter text-red-500">
+            From Rock Bottom <br /> to Ripped City
           </h2>
-          <p className="text-gray-500 text-sm mb-16 uppercase tracking-widest font-bold text-center">
-            Data-Driven Results
-          </p>
-          
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="relative group overflow-hidden rounded-2xl">
-              <img 
-                src={content.beforeImage}
-                alt="Before"
-                className="w-full h-[400px] object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
-                <span className="text-2xl font-black italic uppercase text-red-500">BEFORE</span>
-              </div>
+          <div className="space-y-6 text-gray-400 leading-relaxed font-medium">
+            <p>
+              When you look at me today—owner of Ripped City Inc, aspiring professional bodybuilder—you might assume I've always been fit.
+            </p>
+            <p>
+              My journey began at 338 pounds. I was exhausted, emotionally drained, and medically at risk. Over the next year, I lost 97 pounds and gained mental clarity and purpose.
+            </p>
+            <p className="text-white italic font-bold text-lg">
+              "It's better to suffer in the gym than to suffer in the hospital."
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-4 h-64 md:h-[500px]">
+            <div className="relative rounded-2xl overflow-hidden border border-gray-800">
+              <img src={content.beforeImage} className="w-full h-full object-cover grayscale" alt="Before" />
+              <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur px-3 py-1 rounded text-[10px] font-black uppercase">Baseline</div>
             </div>
-            <div className="relative group overflow-hidden rounded-2xl">
-              <img 
-                src={content.afterImage}
-                alt="After"
-                className="w-full h-[400px] object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
-                <span className="text-2xl font-black italic uppercase text-red-500">AFTER</span>
-              </div>
+            <div className="relative rounded-2xl overflow-hidden border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
+              <img src={content.afterImage} className="w-full h-full object-cover" alt="After" />
+              <div className="absolute bottom-4 left-4 bg-red-600 px-3 py-1 rounded text-[10px] font-black uppercase">Current</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-32 px-6 bg-[#030712]">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-black italic uppercase tracking-tighter text-center mb-4">
-            ATHLETE <span className="text-red-600">TESTIMONIALS</span>
-          </h2>
-          <p className="text-gray-500 text-sm mb-16 uppercase tracking-widest font-bold text-center">
-            What Champions Say
-          </p>
-          
+      {/* Elite Transformations (Testimonials) */}
+      <section className="py-32 px-6 bg-gray-950/20">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl font-black italic uppercase tracking-tighter text-center mb-16">ELITE TESTIMONIALS</h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {content.testimonials.map((testimonial, idx) => (
-              <div key={idx} className="glass border border-gray-800 rounded-2xl p-8 hover:border-red-900/50 transition-all">
-                <div className="flex items-center gap-4 mb-6">
-                  <img 
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    className="w-14 h-14 rounded-full border-2 border-red-600"
-                  />
+            {content.testimonials.map((t, i) => (
+              <div key={i} className="glass p-8 rounded-2xl border border-gray-800 space-y-6 flex flex-col hover:border-red-600/30 transition-all group">
+                <div className="flex items-center gap-4">
+                  <img src={t.avatar} className="w-12 h-12 rounded-full border border-gray-700 bg-gray-900 grayscale group-hover:grayscale-0 transition-all" alt={t.name} />
                   <div>
-                    <h4 className="font-black italic uppercase text-sm">{testimonial.name}</h4>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{testimonial.role}</p>
+                    <h4 className="font-black text-sm uppercase">{t.name}</h4>
+                    <p className="text-[10px] font-black uppercase text-red-500">{t.role}</p>
                   </div>
                 </div>
-                <p className="text-gray-400 text-sm leading-relaxed italic">
-                  "{testimonial.text}"
-                </p>
+                <p className="text-gray-400 text-sm italic leading-relaxed">"{t.text}"</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Login Section */}
-      <section id="login" className="py-32 px-6 bg-[#030712] border-t border-gray-900">
-        <div className="max-w-md mx-auto">
-          <h2 className="text-3xl font-black italic uppercase tracking-tighter text-center mb-4">
-            {isSignUp ? 'CREATE' : 'ACCESS'} <span className="text-red-600">PORTAL</span>
-          </h2>
-          <p className="text-gray-500 text-sm mb-12 uppercase tracking-widest font-bold text-center">
-            {isSignUp ? 'Join The Elite' : 'Secure Member Login'}
-          </p>
-          
-          <form onSubmit={handlePortalAccess} className="space-y-6">
-            <div className="glass border border-gray-800 rounded-2xl p-8 space-y-6">
-              {/* Google Sign In Button */}
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={isLoggingIn}
-                className="w-full py-4 bg-white hover:bg-gray-100 disabled:bg-gray-800 text-gray-900 font-bold rounded-xl transition-all flex items-center justify-center gap-3"
-              >
-                <i className="fab fa-google text-red-600"></i>
-                Continue with Google
-              </button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-800"></div>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-[#111827] px-4 text-gray-500 font-black">Or</span>
-                </div>
-              </div>
-
-              {/* Email/Password Fields */}
-              {error && (
-                <div className="p-4 bg-red-600/10 border border-red-600/30 rounded-xl text-red-500 text-sm text-center font-bold">
-                  {error}
-                </div>
-              )}
-
-              {showSecretField && (
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-red-500 ml-4">Coach Access Key</label>
-                  <input 
-                    type="text" 
-                    className="w-full bg-[#111827] border border-red-900 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200"
-                    placeholder="Enter master key..."
-                    value={secretKey}
-                    onChange={(e) => setSecretKey(e.target.value)}
-                  />
-                  <p className="text-[9px] text-gray-600 ml-4 mt-1">* Enter rc-alpha-99 to sign up as coach</p>
-                </div>
-              )}
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase text-gray-500 ml-4">Email</label>
-                <input 
-                  type="email" 
-                  required
-                  className="w-full bg-[#111827] border border-gray-800 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200"
-                  placeholder="name@email.com"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase text-gray-500 ml-4">Password</label>
-                <div className="relative">
+      {/* Login Portal Section */}
+      <section className="py-32 px-6 relative overflow-hidden" id="login">
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[80%] bg-gradient-to-t from-red-600/10 to-transparent blur-[120px] rounded-full pointer-events-none"></div>
+        <div className="max-w-md mx-auto relative z-10">
+          <form 
+            onSubmit={handlePortalAccess}
+            className="glass bg-gray-900/40 p-10 rounded-[2.5rem] border border-gray-800 shadow-2xl"
+          >
+            <h2 className="text-3xl font-black italic uppercase tracking-tighter text-center mb-10">
+              {showSecretField ? 'ARCHITECT AUTH' : 'CLIENT LOGIN'}
+            </h2>
+            <div className="space-y-6">
+              {showSecretField ? (
+                <div className="space-y-1.5 animate-in slide-in-from-top-2">
+                  <label className="text-[10px] font-black uppercase text-red-500 ml-4 tracking-widest">Master Authorization Key</label>
                   <input 
                     type="password" 
                     required
-                    className="w-full bg-[#111827] border border-gray-800 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200 pr-12"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    autoFocus
+                    className="w-full bg-[#111827] border border-red-900/50 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200"
+                    placeholder="ENTER KEYCODE"
+                    value={secretKey}
+                    onChange={(e) => setSecretKey(e.target.value)}
                   />
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-gray-500 ml-4">Email</label>
+                    <input 
+                      type="email" 
+                      required
+                      className="w-full bg-[#111827] border border-gray-800 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200"
+                      placeholder="name@email.com"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-gray-500 ml-4">Password</label>
+                    <div className="relative">
+                      <input 
+                        type="password" 
+                        required
+                        className="w-full bg-[#111827] border border-gray-800 p-4 rounded-xl outline-none focus:border-red-600 transition-all font-bold text-gray-200 pr-12"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
               
               <button 
                 type="submit"
@@ -306,19 +256,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
                     Authorizing...
                   </>
                 ) : (
-                  isSignUp ? "Create Account" : "Access Portal"
+                  "Access Portal"
                 )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setError('');
-                }}
-                className="w-full text-sm text-gray-500 hover:text-red-500 transition-colors font-bold"
-              >
-                {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
               </button>
               
               {showSecretField && (
@@ -344,12 +283,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, onLogin, content }) =
         <h1 className="text-4xl font-black italic tracking-tighter">
           RIPPED<span className="text-red-600">CITY</span>
         </h1>
-        <div className="flex justify-center gap-8 text-2xl text-gray-500">
-          <a href="#" className="hover:text-red-600 transition-colors"><i className="fab fa-tiktok"></i></a>
-          <a href="#" className="hover:text-red-600 transition-colors"><i className="fab fa-instagram"></i></a>
+        <div className="flex flex-col items-center gap-6">
+          <div className="flex justify-center gap-8 text-2xl text-gray-500">
+            <a href="#" className="hover:text-red-600 transition-colors"><i className="fab fa-tiktok"></i></a>
+            <a href="#" className="hover:text-red-600 transition-colors"><i className="fab fa-instagram"></i></a>
+          </div>
+          <a 
+            href="https://www.rippedcityinc.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="px-8 py-3 bg-gray-950 border border-gray-800 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:text-red-500 hover:border-red-600 transition-all flex items-center gap-3 shadow-xl"
+          >
+            <i className="fas fa-cart-shopping"></i> Visit Official Store
+          </a>
         </div>
         <p 
-          className="text-[10px] font-bold text-gray-600 uppercase tracking-widest cursor-default select-none"
+          className="text-[10px] font-bold text-gray-600 uppercase tracking-widest cursor-default select-none pt-8"
           onClick={handleSecretTrigger}
         >
           © 2026 Ripped City Inc. All Rights Reserved.
