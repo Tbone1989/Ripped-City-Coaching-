@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "ripped360-v3",
+    
     "public": "dist",
     "ignore": [
       "firebase.json",

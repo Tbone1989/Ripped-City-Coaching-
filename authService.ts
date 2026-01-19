@@ -1,10 +1,6 @@
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  User
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+// Authentication service using Firebase CDN compat API
+declare const firebase: any;
+
 import { auth, db } from './firebase';
 import { UserRole } from './types';
 
@@ -20,84 +16,86 @@ export interface UserData {
 }
 
 // Coach login with secret key
-export const loginWithSecretKey = async (secretKey: string): Promise<{ user: User; role: UserRole } | null> => {
+export const loginWithSecretKey = async (secretKey: string): Promise<{ user: any; role: UserRole } | null> => {
   if (secretKey !== COACH_SECRET_KEY) {
     throw new Error('Invalid secret key');
   }
   
   try {
-    // Sign in with coach credentials
-    const userCredential = await signInWithEmailAndPassword(auth, COACH_EMAIL, COACH_PASSWORD);
+    // Sign in with coach credentials using compat API
+    const userCredential = await auth.signInWithEmailAndPassword(COACH_EMAIL, COACH_PASSWORD);
     return {
       user: userCredential.user,
-      role: UserRole.COACH
+      role: 'coach' as UserRole
     };
   } catch (error: any) {
-    // If coach account doesn't exist, create it
-    if (error.code === 'auth/user-not-found') {
-      const userCredential = await createUserWithEmailAndPassword(auth, COACH_EMAIL, COACH_PASSWORD);
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        email: COACH_EMAIL,
-        role: UserRole.COACH,
-        fullName: 'Ripped City Coach',
-        createdAt: new Date().toISOString()
-      });
-      return {
-        user: userCredential.user,
-        role: UserRole.COACH
-      };
-    }
-    throw error;
+    console.error('Coach login error:', error);
+    throw new Error('Failed to authenticate coach');
   }
 };
 
-// Client signup with email/password
-export const signupClient = async (
-  email: string, 
-  password: string, 
-  fullName: string,
-  additionalData?: any
-): Promise<{ user: User; role: UserRole }> => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  
-  await setDoc(doc(db, 'users', userCredential.user.uid), {
-    email,
-    role: UserRole.CLIENT,
-    fullName,
-    createdAt: new Date().toISOString(),
-    ...additionalData
-  });
-  
-  return {
-    user: userCredential.user,
-    role: UserRole.CLIENT
-  };
+// Client signup
+export const signupClient = async (email: string, password: string, fullName: string): Promise<{ user: any; role: UserRole }> => {
+  try {
+    // Create user account using compat API
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    const user = userCredential.user;
+    
+    // Store user data in Firestore using compat API
+    await db.collection('users').doc(user.uid).set({
+      email,
+      role: 'client',
+      fullName,
+      createdAt: new Date().toISOString()
+    });
+    
+    return {
+      user,
+      role: 'client' as UserRole
+    };
+  } catch (error: any) {
+    console.error('Signup error:', error);
+    throw new Error(error.message || 'Failed to create account');
+  }
 };
 
-// Client login with email/password
-export const loginClient = async (email: string, password: string): Promise<{ user: User; role: UserRole }> => {
-  const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  
-  // Get user role from Firestore
-  const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
-  const userData = userDoc.data() as UserData;
-  
-  return {
-    user: userCredential.user,
-    role: userData.role
-  };
+// Client login
+export const loginClient = async (email: string, password: string): Promise<{ user: any; role: UserRole }> => {
+  try {
+    // Sign in using compat API
+    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+    const user = userCredential.user;
+    
+    // Get user role from Firestore using compat API
+    const userDoc = await db.collection('users').doc(user.uid).get();
+    const userData = userDoc.data() as UserData;
+    
+    return {
+      user,
+      role: userData?.role || 'client'
+    };
+  } catch (error: any) {
+    console.error('Login error:', error);
+    throw new Error(error.message || 'Failed to sign in');
+  }
 };
 
 // Sign out
 export const signOut = async (): Promise<void> => {
-  await firebaseSignOut(auth);
+  try {
+    await auth.signOut();
+  } catch (error: any) {
+    console.error('Sign out error:', error);
+    throw new Error('Failed to sign out');
+  }
 };
 
-// Get current user data
-export const getCurrentUserData = async (uid: string): Promise<UserData | null> => {
-  const userDoc = await getDoc(doc(db, 'users', uid));
-  if (userDoc.exists()) {
-    return userDoc.data() as UserData;
-  }
-  return null;
+// Get current user
+export const getCurrentUser = (): any => {
+  return auth.currentUser;
+};
+
+// Listen to auth state changes
+export const onAuthStateChanged = (callback: (user: any) => void) => {
+  return auth.onAuthStateChanged(callback);
 };

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import './firebase'; // Initialize Firebase
 import { UserRole, Notification, ExperienceTier, LandingPageContent } from './types';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';

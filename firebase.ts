@@ -1,7 +1,5 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+// Firebase configuration using CDN (compat mode)
+declare const firebase: any;
 
 const firebaseConfig = {
   apiKey: "AIzaSyBLZ3yJxHT8qLEfXgMPVNGvHQi6DvbRpwQ",
@@ -12,8 +10,13 @@ const firebaseConfig = {
   appId: "1:1027732918817:web:e4c6f0f4c4e4f0f4e4f0f4"
 };
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-export default app;
+// Initialize Firebase using CDN
+if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+// Export Firebase services
+export const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
+export const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
+export const storage = typeof firebase !== 'undefined' ? firebase.storage() : null;
+export const app = typeof firebase !== 'undefined' ? firebase.app() : null;
