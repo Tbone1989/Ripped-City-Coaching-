@@ -5,11 +5,11 @@ import { SYSTEM_INSTRUCTION, protocolEvents } from '../geminiService';
 import { DashboardEvent } from '../types';
 
 const CoachAIWidget: React.FC = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Expanded by default on login
   const [isLive, setIsLive] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [history, setHistory] = useState<DashboardEvent[]>([]);
-  const [aiResponse, setAiResponse] = useState<string>("Neural monitoring active. Awaiting tactical instruction.");
+  const [aiResponse, setAiResponse] = useState<string>("Initializing Neural Handshake...");
   const [visualizerData, setVisualizerData] = useState<number[]>(Array(20).fill(2));
   
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -61,6 +61,7 @@ const CoachAIWidget: React.FC = () => {
 
   const startLive = async () => {
     setIsConnecting(true);
+    setAiResponse("Establishing secure neural uplink...");
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -75,6 +76,13 @@ const CoachAIWidget: React.FC = () => {
           onopen: () => {
             setIsLive(true);
             setIsConnecting(false);
+            setAiResponse("Link Active. Awaiting briefing...");
+            
+            // SEND IMMEDIATE TEXT PROMPT TO TRIGGER VOICE BRIEFING
+            sessionPromise.then(s => s.sendRealtimeInput({
+                content: [{ text: "System Alert: Coach has logged in. Initialize daily briefing immediately. Report on Sara K (Missed Check-in) and Marcus V (Plateau). Mention 1 new prospect application." }]
+            }));
+
             const source = inputCtx.createMediaStreamSource(stream);
             const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
             scriptProcessor.onaudioprocess = (e) => {
@@ -135,6 +143,7 @@ const CoachAIWidget: React.FC = () => {
             console.error(e);
             setIsConnecting(false);
             setIsLive(false);
+            setAiResponse("Connection Interrupted. Re-establish link.");
           }
         },
         config: {
@@ -147,8 +156,16 @@ const CoachAIWidget: React.FC = () => {
     } catch (err) {
       console.error(err);
       setIsConnecting(false);
+      setAiResponse("Secure Uplink Failed. Manual Override Required.");
     }
   };
+
+  // Auto-connect on mount
+  useEffect(() => {
+    if (!isLive && !isConnecting) {
+        startLive();
+    }
+  }, []);
 
   return (
     <div className={`fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-4 transition-all duration-500 ${isExpanded ? 'w-96' : 'w-16'}`}>
@@ -156,7 +173,7 @@ const CoachAIWidget: React.FC = () => {
         <div className="w-full glass bg-[#050505]/95 border border-red-600/30 rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] animate-in slide-in-from-bottom-5 duration-500">
           <div className="p-5 bg-red-600/10 border-b border-red-600/20 flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></div>
+              <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-red-600 animate-pulse' : 'bg-gray-500'}`}></div>
               <span className="text-[10px] font-black uppercase text-red-500 tracking-[0.2em] italic">Architect's Shadow v4.0</span>
             </div>
             <button onClick={() => setIsExpanded(false)} className="text-gray-600 hover:text-white transition-colors"><i className="fas fa-times text-xs"></i></button>
@@ -166,7 +183,7 @@ const CoachAIWidget: React.FC = () => {
             <div className="space-y-3">
               <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex justify-between">
                 <span>Direct Intelligence Feed</span>
-                <span className="text-blue-500">Secured</span>
+                <span className={isLive ? "text-green-500" : "text-gray-500"}>{isLive ? "LIVE UPLINK" : "STANDBY"}</span>
               </p>
               <div className="p-5 bg-gray-900/50 rounded-2xl border border-gray-800 group hover:border-red-900/40 transition-all">
                 <p className="text-[11px] font-bold text-gray-200 leading-relaxed italic">"{aiResponse}"</p>
