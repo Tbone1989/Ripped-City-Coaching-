@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { saveClient } from './firestoreService';
 import { UserRole, Notification, ExperienceTier, LandingPageContent } from './types';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -31,7 +32,11 @@ import HealthSuite from './components/HealthSuite';
 import ProspectCRM from './components/ProspectCRM';
 
 const App: React.FC = () => {
-  const [role, setRole] = useState<UserRole>(UserRole.PROSPECT);
+  // Load saved role from localStorage on mount
+  const [role, setRole] = useState<UserRole>(() => {
+    const saved = localStorage.getItem('rippedcity_role');
+    return (saved as UserRole) || UserRole.PROSPECT;
+  });
   const [tier, setTier] = useState<ExperienceTier>('BEGINNER'); 
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -73,6 +78,8 @@ const App: React.FC = () => {
 
   const handleLogin = (selectedRole: UserRole) => {
     setRole(selectedRole);
+    // Save role to localStorage for persistence
+    localStorage.setItem('rippedcity_role', selectedRole);
     setIsOnboarding(false);
     setActiveTab('dashboard');
     setIsSidebarOpen(window.innerWidth > 1024);
@@ -96,10 +103,24 @@ const App: React.FC = () => {
       if (isOnboarding) {
         return (
           <OnboardingFlow 
-            onComplete={() => {
-              setIsOnboarding(false);
-              setRole(UserRole.CLIENT);
-              addNotification("Onboarding Complete", "Welcome to Ripped City. Your blueprint is ready.", "SUCCESS");
+            onComplete={async (clientData) => {
+              console.log('🔥 onComplete called with data:', clientData);
+              try {
+                // Save client data to Firestore
+                const savedClient = await saveClient(clientData);
+                console.log('✅ Client saved to Firestore:', savedClient);
+                
+                // Also save to localStorage for quick access
+                localStorage.setItem('rippedcity_current_client', JSON.stringify(savedClient));
+                
+                setIsOnboarding(false);
+                setRole(UserRole.CLIENT);
+                localStorage.setItem('rippedcity_role', UserRole.CLIENT);
+                addNotification("Onboarding Complete", "Welcome to Ripped City. Your blueprint is ready.", "SUCCESS");
+              } catch (error) {
+                console.error('❌ Error saving client:', error);
+                addNotification("Error", "Failed to save your data. Please try again.", "ERROR");
+              }
             }} 
             onCancel={() => setIsOnboarding(false)}
           />

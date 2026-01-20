@@ -1,46 +1,78 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProgressPhoto } from '../types';
 import { analyzePhysiquePhoto } from '../geminiService';
+import { saveProgressPhoto, getClientPhotos } from '../firestoreService';
+import { storage } from '../firebase';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 const ProgressPhotos: React.FC = () => {
-  const [photos, setPhotos] = useState<ProgressPhoto[]>([
-    { 
-      id: '1', 
-      url: 'https://images.unsplash.com/photo-1583454110551-21f2fa2adfcd?q=80&w=2070', 
-      date: '2023-11-15', 
-      phase: 'Late Prep',
-      systemAnalysis: 'Vascularity in peripheral limbs is peaking. Subcutaneous water levels in the lower lumbar region are minimal. Muscle density in deltoid-tricep tie-ins shows optimal separation.'
-    },
-    { 
-      id: '2', 
-      url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070', 
-      date: '2023-10-15', 
-      phase: 'Mid Prep' 
-    }
-  ]);
+  const [photos, setPhotos] = useState<ProgressPhoto[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Get current client ID from localStorage
+  const getCurrentClientId = () => {
+    const client = localStorage.getItem('rippedcity_current_client');
+    return client ? JSON.parse(client).id : null;
+  };
+
+  // Load photos from Firestore on mount
+  useEffect(() => {
+    const loadPhotos = async () => {
+      const clientId = getCurrentClientId();
+      if (clientId) {
+        try {
+          const clientPhotos = await getClientPhotos(clientId);
+          setPhotos(clientPhotos as ProgressPhoto[]);
+        } catch (error) {
+          console.error('Error loading photos:', error);
+        }
+      }
+      setLoading(false);
+    };
+    loadPhotos();
+  }, []);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const clientId = getCurrentClientId();
+    if (!clientId) {
+      alert('Please complete onboarding first');
+      return;
+    }
 
     setAnalyzing(true);
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64String = (reader.result as string).split(',')[1];
       try {
+        // Upload image to Firebase Storage
+        const timestamp = Date.now();
+        const storageRef = ref(storage, `progress_photos/${clientId}/${timestamp}.jpg`);
+        await uploadString(storageRef, reader.result as string, 'data_url');
+        const downloadURL = await getDownloadURL(storageRef);
+        
+        // Analyze photo with Gemini
         const analysis = await analyzePhysiquePhoto(base64String, 'Current Phase');
-        const newPhoto: ProgressPhoto = {
-          id: Date.now().toString(),
-          url: reader.result as string,
+        
+        // Save to Firestore
+        const photoData = {
+          url: downloadURL,
           date: new Date().toISOString().split('T')[0],
           phase: 'Current Phase',
           systemAnalysis: analysis
         };
-        setPhotos([newPhoto, ...photos]);
+        
+        const savedPhoto = await saveProgressPhoto(clientId, photoData);
+        setPhotos([savedPhoto as ProgressPhoto, ...photos]);
+        
+        console.log('✅ Photo saved successfully!');
       } catch (err) {
-        console.error(err);
+        console.error('❌ Error uploading photo:', err);
+        alert('Failed to save photo. Please try again.');
       } finally {
         setAnalyzing(false);
       }

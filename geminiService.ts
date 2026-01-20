@@ -43,7 +43,7 @@ export const protocolEvents = {
 };
 
 export const getExpertConsultation = async (prompt: string, history: any[] = []) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const chat = ai.chats.create({
     model: 'gemini-3-pro-preview',
     config: {
@@ -56,7 +56,7 @@ export const getExpertConsultation = async (prompt: string, history: any[] = [])
 };
 
 export const getArchiveDossier = async (query: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: `Provide a clinical dossier for the query: ${query}. 
@@ -85,7 +85,7 @@ export const getArchiveDossier = async (query: string) => {
 };
 
 export const analyzeBodyScan = async (base64ImageData: string, tier: string = 'BEGINNER', mimeType: string = 'image/jpeg') => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: {
@@ -117,7 +117,7 @@ export const analyzeBodyScan = async (base64ImageData: string, tier: string = 'B
 };
 
 export const analyzeProductLabel = async (base64ImageData: string, tier: string = 'BEGINNER', mimeType: string = 'image/jpeg', allergens: string[] = []) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: {
@@ -151,7 +151,7 @@ export const analyzeProductLabel = async (base64ImageData: string, tier: string 
 };
 
 export const analyzeMealPhoto = async (base64ImageData: string, currentTarget: string, tier: string = 'BEGINNER', mimeType: string = 'image/jpeg', allergens: string[] = []) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: {
@@ -190,7 +190,7 @@ export const analyzeMealPhoto = async (base64ImageData: string, currentTarget: s
 };
 
 export const getDailyCoachBriefing = async (unitState: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: `Coach briefing for Unit State: ${JSON.stringify(unitState)}.`,
@@ -221,7 +221,7 @@ export const getDailyCoachBriefing = async (unitState: any) => {
 };
 
 export const runSystemAudit = async (appState: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: `Unit Integrity Audit: ${JSON.stringify(appState)}.`,
@@ -248,7 +248,7 @@ export const runSystemAudit = async (appState: any) => {
 };
 
 export const generateMealPlan = async (profile: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Generate an allergen-safe, high-performance meal plan for: ${JSON.stringify(profile)}. Return JSON.`,
@@ -287,7 +287,7 @@ export const generateMealPlan = async (profile: any) => {
 };
 
 export const generateWorkoutBlock = async (profile: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Generate a periodized training block for: ${JSON.stringify(profile)}. Return JSON.`,
@@ -300,7 +300,7 @@ export const generateWorkoutBlock = async (profile: any) => {
 };
 
 export const generateRehabProtocol = async (data: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Generate a clinical rehab protocol for: ${JSON.stringify(data)}. Return JSON.`,
@@ -332,7 +332,7 @@ export const generateRehabProtocol = async (data: any) => {
 };
 
 export const analyzeBloodwork = async (base64ImageData: string, mimeType: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -370,7 +370,7 @@ export const analyzeBloodwork = async (base64ImageData: string, mimeType: string
 };
 
 export const optimizeStrategicSchedule = async (appointments: any[], bioData: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Optimize schedule based on bio-feedback: ${JSON.stringify(bioData)} and existing appointments: ${JSON.stringify(appointments)}. Return JSON.`,
@@ -399,7 +399,7 @@ export const optimizeStrategicSchedule = async (appointments: any[], bioData: an
 };
 
 export const runBatchAudit = async (data: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Perform unit-wide batch audit for: ${JSON.stringify(data)}. Return JSON.`,
@@ -427,7 +427,7 @@ export const runBatchAudit = async (data: any) => {
 };
 
 export const analyzeMarketIntel = async (data: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Analyze marketing data and provide elite strategy: ${JSON.stringify(data)}. Return JSON.`,
@@ -449,7 +449,7 @@ export const analyzeMarketIntel = async (data: any) => {
 };
 
 export const analyzePhysiquePhoto = async (base64ImageData: string, phase: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -464,7 +464,7 @@ export const analyzePhysiquePhoto = async (base64ImageData: string, phase: strin
 };
 
 export const auditKineticForm = async (base64ImageData: string, exercise: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -491,7 +491,7 @@ export const auditKineticForm = async (base64ImageData: string, exercise: string
 };
 
 export const analyzeMolecularSynergy = async (stack: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Analyze molecular synergy and hazards for: ${stack}. Return JSON.`,
@@ -523,7 +523,7 @@ export const analyzeMolecularSynergy = async (stack: string) => {
 };
 
 export const generateCircadianProtocol = async (sleepData: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Generate circadian protocol for: ${JSON.stringify(sleepData)}. Return JSON.`,
@@ -545,7 +545,7 @@ export const generateCircadianProtocol = async (sleepData: any) => {
 };
 
 export const generateMarketingCopy = async (data: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Generate high-authority marketing copy for: ${JSON.stringify(data)}. Return JSON.`,
@@ -565,7 +565,7 @@ export const generateMarketingCopy = async (data: any) => {
 };
 
 export const getAthleteBriefing = async (athlete: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Provide a disciplinary briefing for athlete: ${JSON.stringify(athlete)}.`,
@@ -575,7 +575,7 @@ export const getAthleteBriefing = async (athlete: any) => {
 };
 
 export const getStrategicPerformanceAdvice = async (data: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Engineer high-level performance strategy for: ${JSON.stringify(data)}. Return JSON.`,
@@ -599,7 +599,7 @@ export const getStrategicPerformanceAdvice = async (data: any) => {
 };
 
 export const getRestaurantAdvice = async (restaurant: string, tier: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Provide menu strategy for ${restaurant} for a ${tier} athlete. Return JSON.`,

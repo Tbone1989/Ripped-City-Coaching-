@@ -1,32 +1,66 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TeamAthlete, UserRole, AthleticDiscipline } from '../types';
 import { getAthleteBriefing } from '../geminiService';
+import { getAllClients } from '../firestoreService';
 
 const ClientRoster: React.FC = () => {
   const [selectedAthlete, setSelectedAthlete] = useState<any | null>(null);
   const [briefing, setBriefing] = useState<string | null>(null);
   const [loadingBriefing, setLoadingBriefing] = useState(false);
+  const [loadedClients, setLoadedClients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Multi-sport athlete data with required 'tier' property
-  const clients: TeamAthlete[] = [
+  // Load real clients from Firestore
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const clients = await getAllClients();
+        setLoadedClients(clients);
+        console.log('📋 Loaded clients for roster:', clients.length);
+      } catch (error) {
+        console.error('Error loading clients:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClients();
+  }, []);
+  
+  // Convert client data to TeamAthlete format
+  const realClients: TeamAthlete[] = loadedClients.map((client: any) => ({
+    id: client.id,
+    name: client.fullName || 'Unknown',
+    discipline: 'BODYBUILDING' as AthleticDiscipline,
+    tier: client.experience?.includes('Advanced') ? 'ADVANCED' : client.experience?.includes('Intermediate') ? 'INTERMEDIATE' : 'BEGINNER',
+    adherence: 85,
+    status: 'OPTIMAL',
+    lastCheckin: 'New',
+    criticalMetric: 'Onboarding',
+    performanceMetrics: {
+      'Age': client.age || 'N/A',
+      'Weight': client.weight ? `${client.weight}lbs` : 'N/A',
+      'Height': client.height || 'N/A',
+      'Goal': client.goal || 'N/A',
+      'Email': client.email || 'N/A',
+      'Phone': client.phone || 'N/A'
+    }
+  }));
+
+  // Demo clients (keep a few for demonstration)
+  const demoClients: TeamAthlete[] = [
     { 
-      id: '1', name: 'Marcus V.', discipline: 'BODYBUILDING', tier: 'ELITE', adherence: 92, status: 'OPTIMAL', lastCheckin: '2h ago', criticalMetric: 'Macros', 
+      id: 'demo1', name: 'Marcus V. (Demo)', discipline: 'BODYBUILDING', tier: 'ELITE', adherence: 92, status: 'OPTIMAL', lastCheckin: '2h ago', criticalMetric: 'Macros', 
       performanceMetrics: { 'Weight': '94kg', 'BF%': '8.4%', 'Stage Lean': '82%' }
     },
     { 
-      id: '2', name: 'Sara K.', discipline: 'ENDURANCE', tier: 'INTERMEDIATE', adherence: 65, status: 'CRITICAL', lastCheckin: '2d ago', criticalMetric: 'Integrity',
+      id: 'demo2', name: 'Sara K. (Demo)', discipline: 'ENDURANCE', tier: 'INTERMEDIATE', adherence: 65, status: 'CRITICAL', lastCheckin: '2d ago', criticalMetric: 'Integrity',
       performanceMetrics: { 'VO2 Max': '62', 'Lactate Threshold': '168bpm', 'Resting HR': '42bpm' }
     },
-    { 
-      id: '3', name: 'Jake R.', discipline: 'POWERLIFTING', tier: 'ADVANCED', adherence: 88, status: 'DEVIATING', lastCheckin: '5h ago', criticalMetric: 'HRV',
-      performanceMetrics: { 'Total': '780kg', 'Wilks': '492', 'CNS Fatigue': 'High' }
-    },
-    { 
-      id: '4', name: 'Elena D.', discipline: 'TEAM_SPORTS', tier: 'ELITE', adherence: 98, status: 'OPTIMAL', lastCheckin: '1h ago', criticalMetric: 'Macros',
-      performanceMetrics: { '40yd Dash': '4.42s', 'Vertical': '38"', 'Explosive Power': '94%' }
-    },
   ];
+  
+  // Combine real clients with demo clients
+  const clients: TeamAthlete[] = [...realClients, ...demoClients];
 
   const handleViewDossier = async (athlete: any) => {
     setSelectedAthlete(athlete);
